@@ -38,6 +38,8 @@ This is a **study project**: a SvelteKit web app over a PostgreSQL database for 
     │   └── auth-tools.mjs    <- CLI: generate scrypt hash / current TOTP code
     └── src/
         ├── app.d.ts          <- type declaration for App.Locals.user (no runtime code)
+        ├── app.html          <- app shell template
+        ├── error.html        <- styled static error page (errors from hooks/fatal errors)
         ├── env.js            <- declares DATABASE_URL via defineEnvVars
         ├── hooks.server.js   <- resolves session cookie -> locals.user; guards role routes
         ├── lib/
@@ -50,6 +52,7 @@ This is a **study project**: a SvelteKit web app over a PostgreSQL database for 
             ├── +page.svelte              <- public role picker
             ├── +layout.svelte            <- root layout
             ├── +layout.server.js         <- returns sanitized `user` to all pages
+            ├── +error.svelte             <- styled in-app error page (load/navigation errors)
             ├── logout/+server.js         <- GET/POST logout: delete session row + cookie
             ├── admin/
             │   ├── +page.svelte
@@ -90,6 +93,15 @@ import { requireRole } from '#lib/server/auth.js';
 | `GET or POST /logout` | Clear session | No |
 
 Login pages stay public even when logged in so a user can switch roles without logging out first.
+
+### Error pages
+
+SvelteKit has two separate error renderers. Both are styled to look the same:
+
+- `src/routes/+error.svelte` handles errors thrown from `load` functions and client-side navigation (for example the `404` from `pat_get_proc_meds`). Plain HTML with Tailwind tokens, no shadcn component imports — it is a lazily loaded chunk (~0.65 kB gzipped).
+- `src/error.html` handles errors thrown from `hooks.server.js` before `resolve()` (the `403` from `requireRole`) and other fatal errors. Standalone HTML with inline CSS using the same design tokens; it cannot mount Svelte components.
+
+Keep the markup, tokens, and "Back to home" link in sync between these two files.
 
 ## 2. Commands and setup
 

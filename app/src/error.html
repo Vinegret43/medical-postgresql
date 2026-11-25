@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>%sveltekit.status% · %sveltekit.error.message%</title>
+		<!--
+			Standalone fallback used for errors thrown from hooks.server.js before
+			resolve(), and for fatal/data errors. It has no access to the app CSS or
+			components, so the tokens below mirror src/routes/layout.css and the
+			markup mirrors src/routes/+error.svelte. Keep the two in sync.
+		-->
+		<style>
+			:root {
+				--background: oklch(1 0 0);
+				--foreground: oklch(0.148 0.004 228.8);
+				--card: oklch(1 0 0);
+				--card-foreground: oklch(0.148 0.004 228.8);
+				--primary: oklch(0.52 0.105 223.128);
+				--primary-foreground: oklch(0.984 0.019 200.873);
+				--muted-foreground: oklch(0.56 0.021 213.5);
+				--border: oklch(0.925 0.005 214.3);
+				--radius-md: 0.36rem;
+				--radius-xl: 0.63rem;
+			}
+
+			@media (prefers-color-scheme: dark) {
+				:root {
+					--background: oklch(0.148 0.004 228.8);
+					--foreground: oklch(0.987 0.002 197.1);
+					--card: oklch(0.218 0.008 223.9);
+					--card-foreground: oklch(0.987 0.002 197.1);
+					--primary: oklch(0.45 0.085 224.283);
+					--primary-foreground: oklch(0.984 0.019 200.873);
+					--muted-foreground: oklch(0.723 0.014 214.4);
+					--border: oklch(1 0 0 / 10%);
+				}
+			}
+
+			* {
+				box-sizing: border-box;
+			}
+
+			body {
+				min-height: 100vh;
+				margin: 0;
+				padding: 1.5rem;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				background: var(--background);
+				color: var(--foreground);
+				font-family: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+			}
+
+			.card {
+				width: 100%;
+				max-width: 28rem;
+				padding: 2rem;
+				border: 1px solid var(--border);
+				border-radius: var(--radius-xl);
+				background: var(--card);
+				color: var(--card-foreground);
+				box-shadow: 0 1px 3px oklch(0 0 0 / 0.08);
+			}
+
+			.status {
+				font-size: 3rem;
+				font-weight: 300;
+				line-height: 1;
+				color: var(--primary);
+			}
+
+			h1 {
+				margin: 0.75rem 0 0;
+				font-size: 1.25rem;
+				font-weight: 600;
+			}
+
+			p {
+				margin: 0.5rem 0 0;
+				font-size: 0.875rem;
+				color: var(--muted-foreground);
+			}
+
+			a {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				height: 2.25rem;
+				margin-top: 1.5rem;
+				padding: 0 1rem;
+				border-radius: var(--radius-md);
+				background: var(--primary);
+				color: var(--primary-foreground);
+				font-size: 0.875rem;
+				font-weight: 500;
+				text-decoration: none;
+				transition: background-color 150ms ease;
+			}
+
+			a:hover {
+				background: color-mix(in oklch, var(--primary) 80%, transparent);
+			}
+		</style>
+	</head>
+	<body>
+		<section class="card">
+			<div class="status">%sveltekit.status%</div>
+			<h1>%sveltekit.error.message%</h1>
+			<p>You can return to the home page and try again.</p>
+			<a href="/">Back to home</a>
+		</section>
+	</body>
+</html>
