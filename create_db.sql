@@ -38,11 +38,11 @@ CREATE TABLE proc_lfv21 (
     admin_edit_timestamp_lfv21 timestamptz,
     PRIMARY KEY (proc_id_lfv21),
     FOREIGN KEY (pat_oms_lfv21) REFERENCES pat_lfv21(pat_oms_lfv21)
-        ON DELETE RESTRICT ON UPDATE CASCADE,,
+        ON DELETE RESTRICT ON UPDATE CASCADE,
     FOREIGN KEY (doc_license_lfv21) REFERENCES doc_lfv21(doc_license_lfv21)
-        ON DELETE RESTRICT ON UPDATE CASCADE,,
+        ON DELETE RESTRICT ON UPDATE CASCADE,
     FOREIGN KEY (admin_login_lfv21) REFERENCES admin_lfv21(admin_login_lfv21)
-        ON DELETE SET NULL ON UPDATE CASCADE,
+        ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 CREATE TABLE meds_lfv21 (
