@@ -92,7 +92,7 @@ import { requireRole } from '#lib/server/auth.js';
 | `/patient` and children | Patient service (procedures, profile, procedure details) | Yes |
 | `GET or POST /logout` | Clear session | No |
 
-Login pages stay public even when logged in so a user can switch roles without logging out first.
+Login pages stay public even when logged in so a user can switch roles without logging out first. All three use shadcn components (`Card`, `Field`, `Input`, `Button`, and a destructive `Alert` for failures). Admin uses a password `Input`; doctor and patient use the shadcn `InputOTP` component (6 digits, digits-only pattern) bound to the `secret` field. The OTP component renders a hidden `<input name="secret">`, so the existing `loginAction()` server action needs no changes.
 
 ### Error pages
 
