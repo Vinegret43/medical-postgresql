@@ -1,6 +1,7 @@
 import { requireRole } from '#lib/server/auth.js';
+import { getMyProcedures } from '#lib/server/doc.js';
 
-/** Forces a server round-trip on client-side navigation so the hook can guard. */
-export function load(event) {
-	requireRole('doctor', event);
+export async function load(event) {
+	const user = requireRole('doctor', event);
+	return { procedures: await getMyProcedures(user.subjectId) };
 }
