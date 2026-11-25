@@ -1,6 +1,6 @@
 import {
 	getUserFromSession,
-	isPublicRoute,
+	isRoleGuardExempt,
 	requireRole,
 	roleForRoute,
 	toPublicUser
@@ -13,7 +13,7 @@ export async function handle({ event, resolve }) {
 	const routeId = event.route.id ?? '';
 	const role = roleForRoute(routeId);
 
-	if (role && !isPublicRoute(routeId)) requireRole(role, event);
+	if (role && !isRoleGuardExempt(routeId)) requireRole(role, event);
 
 	return resolve(event);
 }

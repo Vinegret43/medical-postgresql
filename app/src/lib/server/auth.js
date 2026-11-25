@@ -29,8 +29,13 @@ export function roleForRoute(routeId) {
 	return null;
 }
 
-export function isPublicRoute(routeId) {
-	return routeId === '/' || Object.values(LOGIN_PATHS).includes(routeId);
+/**
+ * Routes inside a guarded prefix that are deliberately reachable without a session.
+ * Everything outside those prefixes (`/`, `/logout`, ...) is public by default
+ * because `roleForRoute()` returns null for it.
+ */
+export function isRoleGuardExempt(routeId) {
+	return Object.values(LOGIN_PATHS).includes(routeId);
 }
 
 /** Only local paths are accepted as post-login destinations. */

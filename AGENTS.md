@@ -50,7 +50,7 @@ This is a **study project**: a SvelteKit web app over a PostgreSQL database for 
             ├── +page.svelte              <- public role picker
             ├── +layout.svelte            <- root layout
             ├── +layout.server.js         <- returns sanitized `user` to all pages
-            ├── logout/+server.js         <- POST logout: delete session row + cookie
+            ├── logout/+server.js         <- GET/POST logout: delete session row + cookie
             ├── admin/
             │   ├── +page.svelte
             │   ├── +page.server.js       <- calls requireRole('admin')
@@ -84,7 +84,7 @@ import { requireRole } from '#lib/server/auth.js';
 | `/admin` and children | Admin service | Yes |
 | `/doc` and children | Doctor service | Yes |
 | `/patient` and children | Patient service | Yes |
-| `POST /logout` | Clear session | No |
+| `GET or POST /logout` | Clear session | No |
 
 Login pages stay public even when logged in so a user can switch roles without logging out first.
 
@@ -274,7 +274,7 @@ event.locals.user = toPublicUser(user);
 /patient -> patient
 ```
 
-`isPublicRoute()` exempts `/` and the three exact login route ids. Nested routes like `/admin/reports` are protected because `roleForRoute(routeId)` matches the prefix.
+`isRoleGuardExempt()` exempts only the three exact login route ids. Routes outside the guarded prefixes (`/`, `/logout`, ...) are public by default because `roleForRoute(routeId)` returns null for them. Nested routes like `/admin/reports` are protected because `roleForRoute(routeId)` matches the prefix.
 
 ### 4.2 The client-navigation trap
 
@@ -361,7 +361,7 @@ In Svelte components (root layout already returns `user`):
 ### 4.6 Session/cookie rules
 
 - Cookie name: `sessionid`; value: opaque random token. Do not put role, OMS, license, or secret in it.
-- `sessions` is the revocation mechanism: deleting a row kills that session. `POST /logout` deletes both the row and the cookie.
+- `sessions` is the revocation mechanism: deleting a row kills that session. `GET or POST /logout` deletes both the row and the cookie.
 - Keep `httpOnly`, `sameSite: 'lax'`, and production `secure`. Do not make the cookie readable by JS.
 - `maxAge: 604800` (7 days) is browser lifetime only; there is no DB expiry by design.
 - `hashPassword()` uses `scrypt` with a random 16-byte hex salt and stores `salt:hash`; `verifyPassword()` uses `timingSafeEqual`.
@@ -382,6 +382,6 @@ Then manually verify:
 - Logged-in admin visiting `/doc` (or a child route) → `403`.
 - Logged-in patient visiting `/patient/...` → data queried with the session OMS, not a URL param.
 - Client-side navigation into a protected child route still hits the server (check dev-server request/log).
-- `POST /logout` removes the cookie and the `sessions` row.
+- `GET or POST /logout` removes the cookie and the `sessions` row.
 - Invalid credentials show `Invalid credentials` and do not create a session.
 - `redirectTo=https://evil...` and `//evil...` both fall back to the role home.
