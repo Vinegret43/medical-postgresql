@@ -9,7 +9,7 @@ This is a **study project**: a SvelteKit web app over a PostgreSQL database for 
 1. **Role is never client-supplied.** No role dropdown, hidden input, URL param, or header may decide the user's role. The role comes from the route (`/admin`, `/doc`, `/patient`) and from `auth_users.role` in the DB.
 2. **Identity is never client-supplied.** Patient OMS, doctor license, and admin login used for DB queries must come from `event.locals.user.subjectId`, never from a form field or URL param.
 3. **All auth decisions happen on the server.** Client-side checks are UX only and are not security.
-4. **Use Sequelize for `auth_users` / `sessions`.** Use the `pg` pool and the SQL procedures/functions/views in `create_db.sql` for medical data. Do not mix these layers casually.
+4. **Use Sequelize for `auth_users` / `sessions`.** For medical data, use the `pg` pool to call the procedures/functions/views in `create_db.sql`. **Do not issue direct `INSERT`/`UPDATE`/`DELETE` against `pat_lfv21`, `doc_lfv21`, `admin_lfv21`, `proc_lfv21`, `meds_lfv21`, or `appl_lfv21`; use the existing procedures instead.** Do not mix these layers casually.
 5. **Do not add extra session columns.** `sessions` is intentionally only `token -> user_id`. No `created_at`, `expires_at`, or `revoked` unless the user explicitly asks.
 6. **Do not add extra user columns.** `auth_users` is intentionally minimal: `id`, `role`, `subject_id`, `credential`. No `created_at` / `is_active` without asking.
 7. **Keep credentials out of the browser.** `toPublicUser()` strips `credential`. The root layout returns only `{ id, role, subjectId }`.
