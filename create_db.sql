@@ -217,7 +217,7 @@ RETURNS TABLE (
     doc_phone varchar(15),
     proc_time timestamptz,
     proc_name varchar(200),
-    recommendations text,
+    recommendations text
 )
 LANGUAGE plpgsql STABLE AS $$
 BEGIN
@@ -229,7 +229,7 @@ BEGIN
         d.doc_phone_lfv21 AS doc_phone,
         pr.proc_time_lfv21 AS proc_time,
         pr.proc_name_lfv21 AS proc_name,
-        pr.proc_recommendations_lfv21 AS recommendations,
+        pr.proc_recommendations_lfv21 AS recommendations
     FROM proc_lfv21 AS pr
     JOIN doc_lfv21 AS d ON d.doc_license_lfv21 = pr.doc_license_lfv21
     WHERE pr.pat_oms_lfv21 = p_oms;
@@ -675,3 +675,57 @@ CREATE INDEX idx_proc_doc_license ON proc_lfv21 (doc_license_lfv21);
 CREATE INDEX idx_proc_admin_login ON proc_lfv21 (admin_login_lfv21);
 CREATE INDEX idx_proc_time ON proc_lfv21 (proc_time_lfv21);
 CREATE INDEX idx_appl_med ON appl_lfv21 (proc_meds_id_lfv21);
+
+-- ============================================================================
+--                              Demo data
+-- ============================================================================
+-- Matches the demo users in create_auth.sql:
+--   patient OMS 2000000001, doctor license 1000000001.
+-- Created only through the procedures above; no direct DML on base tables.
+-- The third procedure intentionally has no medications to exercise the empty state.
+
+DO $$
+DECLARE
+    v_proc_id int8;
+BEGIN
+    CALL admin_create_patient(2000000001, 'Ivan Ivanov', DATE '1990-05-14', '+79991234567');
+    CALL admin_create_doctor(1000000001, 'Maria Petrova', DATE '1984-03-12', '+79997654321');
+
+    CALL admin_create_medication('9f1b8c2e-5d6a-4f0b-9a3c-1d2e3f4a5b61'::uuid, 'Paracetamol', 'oral');
+    CALL admin_create_medication('3c7d9e1a-2b4f-4c8d-8e6a-7f9b0c1d2e34'::uuid, 'Ibuprofen', 'oral');
+    CALL admin_create_medication('a4b5c6d7-8e9f-4a1b-8c2d-3e4f5a6b7c89'::uuid, 'Hydrocortisone', 'topical');
+
+    CALL doc_create_proc(
+        p_oms => 2000000001,
+        p_license => 1000000001,
+        p_name => 'Consultation',
+        p_remarks => 'Routine check-up',
+        p_recommendations => 'Rest and drink plenty of fluids',
+        p_time => TIMESTAMPTZ '2026-11-10 10:00:00+00',
+        p_proc_id => v_proc_id
+    );
+    CALL doc_create_appl(v_proc_id, '9f1b8c2e-5d6a-4f0b-9a3c-1d2e3f4a5b61'::uuid, 1.0);
+    CALL doc_create_appl(v_proc_id, '3c7d9e1a-2b4f-4c8d-8e6a-7f9b0c1d2e34'::uuid, 0.4);
+
+    CALL doc_create_proc(
+        p_oms => 2000000001,
+        p_license => 1000000001,
+        p_name => 'Dressing change',
+        p_remarks => 'Small wound on the left hand',
+        p_recommendations => 'Keep the wound clean and dry',
+        p_time => TIMESTAMPTZ '2026-11-15 14:30:00+00',
+        p_proc_id => v_proc_id
+    );
+    CALL doc_create_appl(v_proc_id, 'a4b5c6d7-8e9f-4a1b-8c2d-3e4f5a6b7c89'::uuid, 0.1);
+
+    CALL doc_create_proc(
+        p_oms => 2000000001,
+        p_license => 1000000001,
+        p_name => 'Follow-up consultation',
+        p_remarks => 'Recovery confirmed',
+        p_recommendations => 'No further visits needed',
+        p_time => TIMESTAMPTZ '2026-11-22 09:00:00+00',
+        p_proc_id => v_proc_id
+    );
+END;
+$$;

@@ -16,7 +16,7 @@ This is a **study project**: a SvelteKit web app over a PostgreSQL database for 
 8. **Big IDs are strings.** OMS, license, and procedure IDs are `int8`. Never convert them to JS `Number`; use strings / BigInt-safe params.
 9. **A protected route must cause a server request.** SvelteKit client-side navigation to a route with no server `load` skips `hooks.server.js`. Add a `+page.server.js` load, or preferably a per-role `+layout.server.js` guard.
 10. **Wrong role → `error(403)`; anonymous → redirect to that role's login.** Never silently render another role's data.
-11. **Known SQL issues exist in `create_db.sql`.** Do not silently rewrite the schema to work around them. See "Known issues" below.
+11. **Do not silently rewrite the schema to work around SQL issues.** The known `pat_get_procedures` syntax errors were fixed explicitly; if new issues appear, ask before changing `create_db.sql`.
 
 ## 1. Repository layout
 
@@ -60,8 +60,11 @@ This is a **study project**: a SvelteKit web app over a PostgreSQL database for 
             │   ├── +page.server.js       <- calls requireRole('doctor')
             │   └── login/{+page.svelte,+page.server.js}
             └── patient/
-                ├── +page.svelte
-                ├── +page.server.js       <- calls requireRole('patient')
+                ├── +layout.server.js     <- guards subtree + loads patient for the top bar
+                ├── +layout.svelte        <- shared top bar (home + profile badge)
+                ├── +page.svelte/.server.js
+                ├── profile/+page.svelte/.server.js
+                ├── procedure/[id]/+page.svelte/.server.js
                 └── login/{+page.svelte,+page.server.js}
 ```
 
@@ -83,7 +86,7 @@ import { requireRole } from '#lib/server/auth.js';
 | `/patient/login` | Patient login form + `default` action | No, intentionally public |
 | `/admin` and children | Admin service | Yes |
 | `/doc` and children | Doctor service | Yes |
-| `/patient` and children | Patient service | Yes |
+| `/patient` and children | Patient service (procedures, profile, procedure details) | Yes |
 | `GET or POST /logout` | Clear session | No |
 
 Login pages stay public even when logged in so a user can switch roles without logging out first.
@@ -164,7 +167,7 @@ All are **unfiltered**; do not expose them through the patient role.
 #### Retrieve functions
 
 - `pat_get_patient(p_oms)` — one patient record.
-- `pat_get_procedures(p_oms)` — patient's procedures with doctor info. **Currently does not compile; see Known issues.**
+- `pat_get_procedures(p_oms)` — patient's procedures with doctor info. Compiles now; intentionally has no admin edit fields.
 - `pat_get_proc_meds(p_proc_id, p_oms)` — medications for a procedure **after ownership check**. See below.
 - `pat_count_procs(p_oms)`
 - `doc_get_patient_procs(p_oms)` — all procedures for a patient; intentionally no patient-ownership check.
@@ -219,7 +222,7 @@ Trigger names: `pat_auth_delete/update`, `doc_auth_delete/update`, `admin_auth_d
 | doctor | `1000000001` | TOTP secret `JBSWY3DPEHPK3PXP` |
 | patient | `2000000001` | TOTP secret `GEZDGNBVGY3TQOJQ` |
 
-`create_db.sql` seeds no base rows, so matching `pat_lfv21` / `doc_lfv21` / `admin_lfv21` rows must be created separately before testing data queries. The auth users themselves still work for login.
+`create_db.sql` now seeds demo base rows for the patient (OMS `2000000001`) and doctor (license `1000000001`), three procedures and three medications, all via the existing procedures. There is still no seeded `admin_lfv21` row; admins are managed manually. Re-running `create_db.sql` drops and recreates the database (and the demo data).
 
 ### 3.3 Row-level authorization rule to copy
 
@@ -241,9 +244,9 @@ It raises `P0002` instead of returning an empty set. This is still a caller-supp
 
 ### 3.4 Known issues / cautions
 
-- `create_db.sql:41` and `:43`: `ON DELETE/UPDATE ... CASCADE,,` — double comma in FK definitions; blocks a clean rebuild.
-- `create_db.sql:221` and `:232`: trailing commas in `pat_get_procedures`'s `RETURNS TABLE` and `SELECT` list; function will not compile as written.
+- `pat_get_procedures` had trailing commas in `RETURNS TABLE` and `SELECT`; both were removed so the function compiles. Do not reintroduce them.
 - `docs/report.typ` still has `#lorem(...)` placeholders and empty sections; do not infer unwritten requirements from it.
+- Patient pages must never display `admin_login` or `admin_edit_timestamp`; use `pat_*` functions, not the unfiltered views.
 - Views and doctor/admin functions are unfiltered; never expose them through `/patient`.
 - No DB-level auth/RLS exists. Route guards + trusted session data are the entire boundary.
 
