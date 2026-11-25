@@ -31,11 +31,11 @@
 					<span class="text-sm font-medium">{patientName}</span>
 				</div>
 
-				<Button href="/patient/profile" variant="outline" size="sm" class="gap-2">
-					<Avatar.Root class="size-7">
+				<Button href="/patient/profile" variant="outline" size="sm" class="gap-2 pt-4 pb-4">
+					<Avatar.Root class="size-6">
 						<Avatar.Fallback>{initials}</Avatar.Fallback>
 					</Avatar.Root>
-					<Badge variant="secondary">Profile</Badge>
+					Profile
 				</Button>
 			</div>
 		</header>

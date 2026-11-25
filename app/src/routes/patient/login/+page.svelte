@@ -25,7 +25,7 @@
 				class="rounded border px-2 py-1"
 				name="secret"
 				inputmode="numeric"
-				pattern="[0-9]{6}"
+				pattern={"[0-9]{6}"}
 				autocomplete="one-time-code"
 				required
 			/>
