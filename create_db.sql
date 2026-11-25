@@ -125,6 +125,7 @@ CREATE TABLE appl_lfv21 (
 
 -- No create/update for admin, this is done manually through the shell
 
--- Разграничение доступа. Три категории пользователей: patient, doctor, admin
--- (CREATE ROLE ___ WITH PASSWORD 'patient', 'doctor', etc. Just leave placeholder
--- passwords for now)
+-- EDIT: хрен с этим разграничением доступа, пока что не делай. Сейчас пусть все
+-- функции будут доступны для всех, просто в названии функции пиши, для кого
+-- она предназначена (pat/doc/admin). Для функций/процедур/триггеров и всего прочего не надо добавлять постфикс lfv21,
+-- пускай он будет только у таблиц и полей. Когда возвращаешь данные из таблицы, через as убирай этот постфикс у полей
