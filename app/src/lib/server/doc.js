@@ -5,7 +5,7 @@ import { pool } from './db.js';
 export async function getDoctor(license) {
 	const { rows } = await pool.query(
 		`SELECT license, fullname, birthdate::text AS birthdate, phone
-		FROM doc_get_doctor($1::int8)`,
+		FROM get_doctor($1::int8)`,
 		[license]
 	);
 	return rows[0] ?? null;
@@ -23,7 +23,7 @@ export async function getMyProcedures(license) {
 			pr.recommendations,
 			pr.admin_login,
 			pr.admin_edit_timestamp
-		FROM doc_get_doctor_procs($1::int8) AS pr
+		FROM get_procedures(p_doc_license => $1::int8) AS pr
 		ORDER BY pr.proc_time DESC, pr.proc_id DESC`,
 		[license]
 	);
@@ -44,7 +44,7 @@ export async function getAllProcedures() {
 			pr.recommendations,
 			pr.admin_login,
 			pr.admin_edit_timestamp
-		FROM doc_get_all_procs() AS pr
+		FROM get_procedures() AS pr
 		ORDER BY pr.proc_time DESC, pr.proc_id DESC`
 	);
 	return rows;
@@ -54,7 +54,7 @@ export async function searchPatients(query) {
 	const q = String(query ?? '').trim();
 	const { rows } = await pool.query(
 		`SELECT oms, fullname, birthdate::text AS birthdate, phone
-		FROM doc_search_patients($1)`,
+		FROM search_patients($1)`,
 		[q]
 	);
 	return rows;
@@ -63,7 +63,7 @@ export async function searchPatients(query) {
 export async function getPatient(oms) {
 	const { rows } = await pool.query(
 		`SELECT oms, fullname, birthdate::text AS birthdate, phone
-		FROM doc_get_patient($1::int8)`,
+		FROM get_patient($1::int8)`,
 		[oms]
 	);
 	return rows[0] ?? null;
@@ -75,15 +75,15 @@ export async function getPatientProcedures(oms) {
 			proc_id,
 			oms,
 			license,
-			doc_fullname,
-			doc_phone,
+			doctor_fullname AS doc_fullname,
+			doctor_phone AS doc_phone,
 			proc_time,
 			proc_name,
 			remarks,
 			recommendations,
 			admin_login,
 			admin_edit_timestamp
-		FROM doc_get_patient_procs($1::int8)
+		FROM get_procedures(p_pat_oms => $1::int8)
 		ORDER BY proc_time DESC, proc_id DESC`,
 		[oms]
 	);
@@ -102,7 +102,7 @@ export async function getProcedure(procId) {
 			recommendations,
 			admin_login,
 			admin_edit_timestamp
-		FROM doc_get_proc($1::int8)`,
+		FROM get_procedure($1::int8)`,
 		[procId]
 	);
 	return rows[0] ?? null;
@@ -111,7 +111,7 @@ export async function getProcedure(procId) {
 export async function getProcedureMedications(procId) {
 	const { rows } = await pool.query(
 		`SELECT med_id, med_name, med_method, dosage
-		FROM doc_get_proc_details($1::int8)
+		FROM get_procedure_medications($1::int8)
 		ORDER BY med_name, med_id`,
 		[procId]
 	);
@@ -119,11 +119,7 @@ export async function getProcedureMedications(procId) {
 }
 
 export async function getMedications() {
-	const { rows } = await pool.query(
-		`SELECT id, name, method
-		FROM v_all_meds
-		ORDER BY name, method, id`
-	);
+	const { rows } = await pool.query(`SELECT id, name, method FROM get_medications()`);
 	return rows;
 }
 

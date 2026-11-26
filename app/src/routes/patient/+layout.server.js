@@ -11,7 +11,7 @@ export async function load(event) {
 	}
 
 	const user = requireRole('patient', event);
-	const { rows } = await pool.query('SELECT * FROM pat_get_patient($1::int8)', [user.subjectId]);
+	const { rows } = await pool.query('SELECT * FROM get_patient($1::int8)', [user.subjectId]);
 
 	return { showHeader: true, patient: rows[0] ?? null };
 }

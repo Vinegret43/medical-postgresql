@@ -10,27 +10,27 @@ export async function load(event) {
 
 	const oms = user.subjectId;
 
-	// Both functions reject any procedure that does not belong to this OMS.
+	// Passing the session OMS makes the SQL functions reject foreign procedures.
 	let medications;
 	let procedure = null;
 	try {
-		const result = await pool.query('SELECT * FROM pat_get_proc_meds($1::int8, $2::int8)', [
-			id,
-			oms
-		]);
+		const result = await pool.query(
+			'SELECT * FROM get_procedure_medications($1::int8, $2::int8)',
+			[id, oms]
+		);
 		medications = result.rows;
 
-		// pat_get_proc deliberately omits admin edit fields.
+		// Only safe columns are projected; admin edit fields are never read here.
 		const procedures = await pool.query(
 			`SELECT
 				proc_id,
 				proc_time,
 				proc_name,
-				doc_fullname,
-				doc_phone,
+				doctor_fullname AS doc_fullname,
+				doctor_phone AS doc_phone,
 				recommendations
-			FROM pat_get_proc($1::int8, $2::int8)`,
-			[oms, id]
+			FROM get_procedure($1::int8, $2::int8)`,
+			[id, oms]
 		);
 		procedure = procedures.rows[0] ?? null;
 	} catch (err) {

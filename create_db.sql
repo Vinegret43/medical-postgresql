@@ -186,137 +186,35 @@ $$;
 -- ============================================================================
 --                                 Retrieve
 -- ============================================================================
+-- One neutral API for every role. There are no DB roles/RLS here, so the same
+-- functions serve admin, doctor and patient. When a caller may only see one
+-- patient's data, pass p_pat_oms: the ownership check is then done in SQL.
 
--- Для пациентов ---------------------------------------------------------------
+CREATE VIEW v_patients AS
+SELECT
+    p.pat_oms_lfv21 AS oms,
+    p.pat_fullname_lfv21 AS fullname,
+    p.pat_birthdate_lfv21 AS birthdate,
+    p.pat_phone_lfv21 AS phone
+FROM pat_lfv21 AS p;
 
-CREATE FUNCTION pat_get_patient(p_oms int8)
-RETURNS TABLE (
-    oms int8,
-    fullname varchar(70),
-    birthdate date,
-    phone varchar(15)
-)
-LANGUAGE plpgsql STABLE AS $$
-BEGIN
-    RETURN QUERY
-    SELECT
-        p.pat_oms_lfv21 AS oms,
-        p.pat_fullname_lfv21 AS fullname,
-        p.pat_birthdate_lfv21 AS birthdate,
-        p.pat_phone_lfv21 AS phone
-    FROM pat_lfv21 AS p
-    WHERE p.pat_oms_lfv21 = p_oms;
-END;
-$$;
+CREATE VIEW v_doctors AS
+SELECT
+    d.doc_license_lfv21 AS license,
+    d.doc_fullname_lfv21 AS fullname,
+    d.doc_birthdate_lfv21 AS birthdate,
+    d.doc_phone_lfv21 AS phone
+FROM doc_lfv21 AS d;
 
-CREATE FUNCTION pat_get_procedures(p_oms int8)
-RETURNS TABLE (
-    proc_id int8,
-    oms int8,
-    doc_fullname varchar(70),
-    doc_phone varchar(15),
-    proc_time timestamptz,
-    proc_name varchar(200),
-    recommendations text
-)
-LANGUAGE plpgsql STABLE AS $$
-BEGIN
-    RETURN QUERY
-    SELECT
-        pr.proc_id_lfv21 AS proc_id,
-        pr.pat_oms_lfv21 AS oms,
-        d.doc_fullname_lfv21 AS doc_fullname,
-        d.doc_phone_lfv21 AS doc_phone,
-        pr.proc_time_lfv21 AS proc_time,
-        pr.proc_name_lfv21 AS proc_name,
-        pr.proc_recommendations_lfv21 AS recommendations
-    FROM proc_lfv21 AS pr
-    JOIN doc_lfv21 AS d ON d.doc_license_lfv21 = pr.doc_license_lfv21
-    WHERE pr.pat_oms_lfv21 = p_oms;
-END;
-$$;
+CREATE VIEW v_meds AS
+SELECT
+    m.proc_meds_id_lfv21 AS id,
+    m.proc_meds_name_lfv21 AS name,
+    m.proc_meds_method_lfv21 AS method
+FROM meds_lfv21 AS m;
 
-CREATE FUNCTION pat_get_proc_meds(p_proc_id int8, p_oms int8)
-RETURNS TABLE (
-    proc_id int8,
-    med_id uuid,
-    med_name varchar(50),
-    med_method varchar(30),
-    dosage float8
-)
-LANGUAGE plpgsql STABLE AS $$
-BEGIN
-    -- Если процедура не принадлежит переданному ОМС — ошибка.
-    IF NOT EXISTS (
-        SELECT 1
-        FROM proc_lfv21 AS pr
-        WHERE pr.proc_id_lfv21 = p_proc_id
-          AND pr.pat_oms_lfv21 = p_oms
-    ) THEN
-        RAISE EXCEPTION 'procedure % is not available for OMS %', p_proc_id, p_oms
-            USING ERRCODE = 'P0002';
-    END IF;
-
-    RETURN QUERY
-    SELECT
-        pr.proc_id_lfv21 AS proc_id,
-        m.proc_meds_id_lfv21 AS med_id,
-        m.proc_meds_name_lfv21 AS med_name,
-        m.proc_meds_method_lfv21 AS med_method,
-        a.proc_meds_dosage_lfv21 AS dosage
-    FROM proc_lfv21 AS pr
-    JOIN appl_lfv21 AS a ON a.proc_id_lfv21 = pr.proc_id_lfv21
-    JOIN meds_lfv21 AS m ON m.proc_meds_id_lfv21 = a.proc_meds_id_lfv21
-    WHERE pr.proc_id_lfv21 = p_proc_id;
-END;
-$$;
-
-CREATE FUNCTION pat_get_proc(p_oms int8, p_proc_id int8)
-RETURNS TABLE (
-    proc_id int8,
-    proc_time timestamptz,
-    proc_name varchar(200),
-    doc_fullname varchar(70),
-    doc_phone varchar(15),
-    recommendations text
-)
-LANGUAGE plpgsql STABLE AS $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1
-        FROM proc_lfv21 AS pr
-        WHERE pr.proc_id_lfv21 = p_proc_id
-          AND pr.pat_oms_lfv21 = p_oms
-    ) THEN
-        RAISE EXCEPTION 'procedure % is not available for OMS %', p_proc_id, p_oms
-            USING ERRCODE = 'P0002';
-    END IF;
-
-    RETURN QUERY
-    SELECT
-        pr.proc_id_lfv21 AS proc_id,
-        pr.proc_time_lfv21 AS proc_time,
-        pr.proc_name_lfv21 AS proc_name,
-        d.doc_fullname_lfv21 AS doc_fullname,
-        d.doc_phone_lfv21 AS doc_phone,
-        pr.proc_recommendations_lfv21 AS recommendations
-    FROM proc_lfv21 AS pr
-    JOIN doc_lfv21 AS d ON d.doc_license_lfv21 = pr.doc_license_lfv21
-    WHERE pr.proc_id_lfv21 = p_proc_id;
-END;
-$$;
-
-CREATE FUNCTION pat_count_procs(p_oms int8)
-RETURNS int8
-LANGUAGE sql STABLE AS $$
-    SELECT count(*)::int8
-    FROM proc_lfv21
-    WHERE pat_oms_lfv21 = p_oms;
-$$;
-
--- Для докторов ---------------------------------------------------------------
-
-CREATE VIEW v_all_procs AS
+-- All procedure columns without joins; functions below add the joins/filters.
+CREATE VIEW v_procs AS
 SELECT
     pr.proc_id_lfv21 AS proc_id,
     pr.pat_oms_lfv21 AS oms,
@@ -329,22 +227,37 @@ SELECT
     pr.admin_edit_timestamp_lfv21 AS admin_edit_timestamp
 FROM proc_lfv21 AS pr;
 
-CREATE VIEW v_all_patients AS
-SELECT
-    p.pat_oms_lfv21 AS oms,
-    p.pat_fullname_lfv21 AS fullname,
-    p.pat_birthdate_lfv21 AS birthdate,
-    p.pat_phone_lfv21 AS phone
-FROM pat_lfv21 AS p;
+CREATE FUNCTION get_patient(p_oms int8)
+RETURNS TABLE (
+    oms int8,
+    fullname varchar(70),
+    birthdate date,
+    phone varchar(15)
+)
+LANGUAGE sql STABLE AS $$
+    SELECT v.oms, v.fullname, v.birthdate, v.phone
+    FROM v_patients AS v
+    WHERE v.oms = p_oms;
+$$;
 
-CREATE VIEW v_all_meds AS
-SELECT
-    m.proc_meds_id_lfv21 AS id,
-    m.proc_meds_name_lfv21 AS name,
-    m.proc_meds_method_lfv21 AS method
-FROM meds_lfv21 AS m;
+CREATE FUNCTION search_patients(p_query varchar)
+RETURNS TABLE (
+    oms int8,
+    fullname varchar(70),
+    birthdate date,
+    phone varchar(15)
+)
+LANGUAGE sql STABLE AS $$
+    SELECT v.oms, v.fullname, v.birthdate, v.phone
+    FROM v_patients AS v
+    WHERE COALESCE(p_query, '') = ''
+       OR v.oms::text LIKE '%' || p_query || '%'
+       OR v.fullname ILIKE '%' || p_query || '%'
+    ORDER BY v.fullname, v.oms
+    LIMIT 200;
+$$;
 
-CREATE FUNCTION doc_get_doctor(p_license int8)
+CREATE FUNCTION get_doctor(p_license int8)
 RETURNS TABLE (
     license int8,
     fullname varchar(70),
@@ -352,22 +265,34 @@ RETURNS TABLE (
     phone varchar(15)
 )
 LANGUAGE sql STABLE AS $$
-    SELECT
-        d.doc_license_lfv21 AS license,
-        d.doc_fullname_lfv21 AS fullname,
-        d.doc_birthdate_lfv21 AS birthdate,
-        d.doc_phone_lfv21 AS phone
-    FROM doc_lfv21 AS d
-    WHERE d.doc_license_lfv21 = p_license;
+    SELECT v.license, v.fullname, v.birthdate, v.phone
+    FROM v_doctors AS v
+    WHERE v.license = p_license;
 $$;
 
-CREATE FUNCTION doc_get_all_procs()
+CREATE FUNCTION get_medications()
+RETURNS TABLE (
+    id uuid,
+    name varchar(50),
+    method varchar(30)
+)
+LANGUAGE sql STABLE AS $$
+    SELECT v.id, v.name, v.method
+    FROM v_meds AS v
+    ORDER BY v.name, v.method, v.id;
+$$;
+
+CREATE FUNCTION get_procedures(
+    IN p_pat_oms int8 DEFAULT NULL,
+    IN p_doc_license int8 DEFAULT NULL
+)
 RETURNS TABLE (
     proc_id int8,
     oms int8,
     patient_fullname varchar(70),
     license int8,
     doctor_fullname varchar(70),
+    doctor_phone varchar(15),
     proc_time timestamptz,
     proc_name varchar(200),
     remarks text,
@@ -377,95 +302,36 @@ RETURNS TABLE (
 )
 LANGUAGE sql STABLE AS $$
     SELECT
-        pr.proc_id_lfv21 AS proc_id,
-        pr.pat_oms_lfv21 AS oms,
-        p.pat_fullname_lfv21 AS patient_fullname,
-        pr.doc_license_lfv21 AS license,
-        d.doc_fullname_lfv21 AS doctor_fullname,
-        pr.proc_time_lfv21 AS proc_time,
-        pr.proc_name_lfv21 AS proc_name,
-        pr.proc_remarks_lfv21 AS remarks,
-        pr.proc_recommendations_lfv21 AS recommendations,
-        pr.admin_login_lfv21 AS admin_login,
-        pr.admin_edit_timestamp_lfv21 AS admin_edit_timestamp
-    FROM proc_lfv21 AS pr
-    LEFT JOIN pat_lfv21 AS p ON p.pat_oms_lfv21 = pr.pat_oms_lfv21
-    LEFT JOIN doc_lfv21 AS d ON d.doc_license_lfv21 = pr.doc_license_lfv21;
+        pr.proc_id,
+        pr.oms,
+        p.fullname AS patient_fullname,
+        pr.license,
+        d.fullname AS doctor_fullname,
+        d.phone AS doctor_phone,
+        pr.proc_time,
+        pr.proc_name,
+        pr.remarks,
+        pr.recommendations,
+        pr.admin_login,
+        pr.admin_edit_timestamp
+    FROM v_procs AS pr
+    LEFT JOIN v_patients AS p ON p.oms = pr.oms
+    LEFT JOIN v_doctors AS d ON d.license = pr.license
+    WHERE (p_pat_oms IS NULL OR pr.oms = p_pat_oms)
+      AND (p_doc_license IS NULL OR pr.license = p_doc_license);
 $$;
 
-CREATE FUNCTION doc_get_proc(p_proc_id int8)
+CREATE FUNCTION get_procedure(
+    IN p_proc_id int8,
+    IN p_pat_oms int8 DEFAULT NULL
+)
 RETURNS TABLE (
     proc_id int8,
     oms int8,
+    patient_fullname varchar(70),
     license int8,
-    proc_time timestamptz,
-    proc_name varchar(200),
-    remarks text,
-    recommendations text,
-    admin_login varchar(30),
-    admin_edit_timestamp timestamptz
-)
-LANGUAGE sql STABLE AS $$
-    SELECT
-        pr.proc_id_lfv21 AS proc_id,
-        pr.pat_oms_lfv21 AS oms,
-        pr.doc_license_lfv21 AS license,
-        pr.proc_time_lfv21 AS proc_time,
-        pr.proc_name_lfv21 AS proc_name,
-        pr.proc_remarks_lfv21 AS remarks,
-        pr.proc_recommendations_lfv21 AS recommendations,
-        pr.admin_login_lfv21 AS admin_login,
-        pr.admin_edit_timestamp_lfv21 AS admin_edit_timestamp
-    FROM proc_lfv21 AS pr
-    WHERE pr.proc_id_lfv21 = p_proc_id;
-$$;
-
-CREATE FUNCTION doc_get_patient(p_oms int8)
-RETURNS TABLE (
-    oms int8,
-    fullname varchar(70),
-    birthdate date,
-    phone varchar(15)
-)
-LANGUAGE sql STABLE AS $$
-    SELECT
-        p.pat_oms_lfv21 AS oms,
-        p.pat_fullname_lfv21 AS fullname,
-        p.pat_birthdate_lfv21 AS birthdate,
-        p.pat_phone_lfv21 AS phone
-    FROM pat_lfv21 AS p
-    WHERE p.pat_oms_lfv21 = p_oms;
-$$;
-
-CREATE FUNCTION doc_search_patients(p_query varchar)
-RETURNS TABLE (
-    oms int8,
-    fullname varchar(70),
-    birthdate date,
-    phone varchar(15)
-)
-LANGUAGE sql STABLE AS $$
-    SELECT
-        p.pat_oms_lfv21 AS oms,
-        p.pat_fullname_lfv21 AS fullname,
-        p.pat_birthdate_lfv21 AS birthdate,
-        p.pat_phone_lfv21 AS phone
-    FROM pat_lfv21 AS p
-    WHERE COALESCE(p_query, '') = ''
-       OR p.pat_oms_lfv21::text LIKE '%' || p_query || '%'
-       OR p.pat_fullname_lfv21 ILIKE '%' || p_query || '%'
-    ORDER BY p.pat_fullname_lfv21, p.pat_oms_lfv21
-    LIMIT 200;
-$$;
-
-CREATE FUNCTION doc_get_patient_procs(p_oms int8)
-RETURNS TABLE (
-    proc_id int8,
-    oms int8,
-    license int8,
-    doc_fullname varchar(70),
-    doc_birthdate date,
-    doc_phone varchar(15),
+    doctor_fullname varchar(70),
+    doctor_phone varchar(15),
     proc_time timestamptz,
     proc_name varchar(200),
     remarks text,
@@ -475,38 +341,42 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql STABLE AS $$
 BEGIN
-    -- Проверки ОМС здесь нет: это функция для доктора.
+    -- The one canonical ownership check. Patient routes pass their session OMS.
+    IF p_pat_oms IS NOT NULL AND NOT EXISTS (
+        SELECT 1
+        FROM proc_lfv21 AS pr
+        WHERE pr.proc_id_lfv21 = p_proc_id
+          AND pr.pat_oms_lfv21 = p_pat_oms
+    ) THEN
+        RAISE EXCEPTION 'procedure % is not available for OMS %', p_proc_id, p_pat_oms
+            USING ERRCODE = 'P0002';
+    END IF;
+
     RETURN QUERY
     SELECT
-        pr.proc_id_lfv21 AS proc_id,
-        pr.pat_oms_lfv21 AS oms,
-        d.doc_license_lfv21 AS license,
-        d.doc_fullname_lfv21 AS doc_fullname,
-        d.doc_birthdate_lfv21 AS doc_birthdate,
-        d.doc_phone_lfv21 AS doc_phone,
-        pr.proc_time_lfv21 AS proc_time,
-        pr.proc_name_lfv21 AS proc_name,
-        pr.proc_remarks_lfv21 AS remarks,
-        pr.proc_recommendations_lfv21 AS recommendations,
-        pr.admin_login_lfv21 AS admin_login,
-        pr.admin_edit_timestamp_lfv21 AS admin_edit_timestamp
-    FROM proc_lfv21 AS pr
-    JOIN doc_lfv21 AS d ON d.doc_license_lfv21 = pr.doc_license_lfv21
-    WHERE pr.pat_oms_lfv21 = p_oms;
+        pr.proc_id,
+        pr.oms,
+        pr.patient_fullname,
+        pr.license,
+        pr.doctor_fullname,
+        pr.doctor_phone,
+        pr.proc_time,
+        pr.proc_name,
+        pr.remarks,
+        pr.recommendations,
+        pr.admin_login,
+        pr.admin_edit_timestamp
+    FROM get_procedures() AS pr
+    WHERE pr.proc_id = p_proc_id;
 END;
 $$;
 
-CREATE FUNCTION doc_get_proc_details(p_proc_id int8)
+CREATE FUNCTION get_procedure_medications(
+    IN p_proc_id int8,
+    IN p_pat_oms int8 DEFAULT NULL
+)
 RETURNS TABLE (
     proc_id int8,
-    oms int8,
-    license int8,
-    proc_time timestamptz,
-    proc_name varchar(200),
-    remarks text,
-    recommendations text,
-    admin_login varchar(30),
-    admin_edit_timestamp timestamptz,
     med_id uuid,
     med_name varchar(50),
     med_method varchar(30),
@@ -514,80 +384,36 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql STABLE AS $$
 BEGIN
+    -- Reuse the ownership check above; no second copy of the P0002 logic.
+    IF p_pat_oms IS NOT NULL THEN
+        PERFORM 1 FROM get_procedure(p_proc_id, p_pat_oms);
+    END IF;
+
     RETURN QUERY
     SELECT
         pr.proc_id_lfv21 AS proc_id,
-        pr.pat_oms_lfv21 AS oms,
-        pr.doc_license_lfv21 AS license,
-        pr.proc_time_lfv21 AS proc_time,
-        pr.proc_name_lfv21 AS proc_name,
-        pr.proc_remarks_lfv21 AS remarks,
-        pr.proc_recommendations_lfv21 AS recommendations,
-        pr.admin_login_lfv21 AS admin_login,
-        pr.admin_edit_timestamp_lfv21 AS admin_edit_timestamp,
-        m.proc_meds_id_lfv21 AS med_id,
-        m.proc_meds_name_lfv21 AS med_name,
-        m.proc_meds_method_lfv21 AS med_method,
+        m.id AS med_id,
+        m.name AS med_name,
+        m.method AS med_method,
         a.proc_meds_dosage_lfv21 AS dosage
     FROM proc_lfv21 AS pr
     JOIN appl_lfv21 AS a ON a.proc_id_lfv21 = pr.proc_id_lfv21
-    JOIN meds_lfv21 AS m ON m.proc_meds_id_lfv21 = a.proc_meds_id_lfv21
+    JOIN v_meds AS m ON m.id = a.proc_meds_id_lfv21
     WHERE pr.proc_id_lfv21 = p_proc_id;
 END;
 $$;
 
-CREATE FUNCTION doc_get_doctor_procs(p_license int8)
-RETURNS TABLE (
-    proc_id int8,
-    oms int8,
-    patient_fullname varchar(70),
-    license int8,
-    proc_time timestamptz,
-    proc_name varchar(200),
-    remarks text,
-    recommendations text,
-    admin_login varchar(30),
-    admin_edit_timestamp timestamptz
+CREATE FUNCTION count_procedures(
+    IN p_pat_oms int8 DEFAULT NULL,
+    IN p_doc_license int8 DEFAULT NULL
 )
-LANGUAGE plpgsql STABLE AS $$
-BEGIN
-    RETURN QUERY
-    SELECT
-        pr.proc_id_lfv21 AS proc_id,
-        pr.pat_oms_lfv21 AS oms,
-        p.pat_fullname_lfv21 AS patient_fullname,
-        pr.doc_license_lfv21 AS license,
-        pr.proc_time_lfv21 AS proc_time,
-        pr.proc_name_lfv21 AS proc_name,
-        pr.proc_remarks_lfv21 AS remarks,
-        pr.proc_recommendations_lfv21 AS recommendations,
-        pr.admin_login_lfv21 AS admin_login,
-        pr.admin_edit_timestamp_lfv21 AS admin_edit_timestamp
-    FROM proc_lfv21 AS pr
-    LEFT JOIN pat_lfv21 AS p ON p.pat_oms_lfv21 = pr.pat_oms_lfv21
-    WHERE pr.doc_license_lfv21 = p_license;
-END;
-$$;
-
-CREATE FUNCTION doc_count_procs(p_license int8)
 RETURNS int8
 LANGUAGE sql STABLE AS $$
     SELECT count(*)::int8
-    FROM proc_lfv21
-    WHERE doc_license_lfv21 = p_license;
+    FROM proc_lfv21 AS pr
+    WHERE (p_pat_oms IS NULL OR pr.pat_oms_lfv21 = p_pat_oms)
+      AND (p_doc_license IS NULL OR pr.doc_license_lfv21 = p_doc_license);
 $$;
-
--- Для администратора ---------------------------------------------------------
-
-CREATE VIEW v_all_doctors AS
-SELECT
-    d.doc_license_lfv21 AS license,
-    d.doc_fullname_lfv21 AS fullname,
-    d.doc_birthdate_lfv21 AS birthdate,
-    d.doc_phone_lfv21 AS phone
-FROM doc_lfv21 AS d;
-
--- Остальные выборки доступны администратору через те же VIEW/функции.
 
 -- ============================================================================
 --                                  UPDATE

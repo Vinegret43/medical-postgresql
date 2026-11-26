@@ -6,7 +6,7 @@ export async function load(event) {
 	// Cast the date to text so it does not shift a day when Node parses it in UTC.
 	const { rows } = await pool.query(
 		`SELECT oms, fullname, birthdate::text AS birthdate, phone
-		FROM pat_get_patient($1::int8)`,
+		FROM get_patient($1::int8)`,
 		[user.subjectId]
 	);
 

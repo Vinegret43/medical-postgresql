@@ -16,7 +16,7 @@ This is a **study project**: a SvelteKit web app over a PostgreSQL database for 
 8. **Big IDs are strings.** OMS, license, and procedure IDs are `int8`. Never convert them to JS `Number`; use strings / BigInt-safe params.
 9. **A protected route must cause a server request.** SvelteKit client-side navigation to a route with no server `load` skips `hooks.server.js`. Add a `+page.server.js` load, or preferably a per-role `+layout.server.js` guard.
 10. **Wrong role → `error(403)`; anonymous → redirect to that role's login.** Never silently render another role's data.
-11. **Do not silently rewrite the schema to work around SQL issues.** The known `pat_get_procedures` syntax errors were fixed explicitly; if new issues appear, ask before changing `create_db.sql`.
+11. **Do not silently rewrite the schema to work around SQL issues.** The old `pat_get_procedures` trailing-comma errors were fixed explicitly; if new issues appear, ask before changing `create_db.sql`.
 12. **No `JOIN` or `WHERE` in application `pool.query` SELECTs.** Joins and filters belong in SQL functions/views in `create_db.sql`; app queries may only project columns and use `ORDER BY` / `LIMIT`. This applies to every medical-data SELECT, not just the doctor area.
 
 ## 1. Repository layout
@@ -99,7 +99,7 @@ Login pages stay public even when logged in so a user can switch roles without l
 
 SvelteKit has two separate error renderers. Both are styled to look the same:
 
-- `src/routes/+error.svelte` handles errors thrown from `load` functions and client-side navigation (for example the `404` from `pat_get_proc_meds`). Plain HTML with Tailwind tokens, no shadcn component imports — it is a lazily loaded chunk (~0.65 kB gzipped).
+- `src/routes/+error.svelte` handles errors thrown from `load` functions and client-side navigation (for example the `404` from `get_procedure_medications`). Plain HTML with Tailwind tokens, no shadcn component imports — it is a lazily loaded chunk (~0.65 kB gzipped).
 - `src/error.html` handles errors thrown from `hooks.server.js` before `resolve()` (the `403` from `requireRole`) and other fatal errors. Standalone HTML with inline CSS using the same design tokens; it cannot mount Svelte components.
 
 Keep the markup, tokens, and "Back to home" link in sync between these two files.
@@ -162,12 +162,12 @@ Indexes: `idx_proc_pat_oms`, `idx_proc_doc_license`, `idx_proc_admin_login`, `id
 
 #### Views
 
-All are **unfiltered**; do not expose them through the patient role.
+Canonical unfiltered projections; the functions below add all joins/filters. Do not expose them directly through the patient role.
 
-- `v_all_procs`
-- `v_all_patients`
-- `v_all_meds`
-- `v_all_doctors`
+- `v_patients`
+- `v_doctors`
+- `v_meds`
+- `v_procs`
 
 #### Create procedures
 
@@ -179,20 +179,16 @@ All are **unfiltered**; do not expose them through the patient role.
 
 #### Retrieve functions
 
-- `pat_get_patient(p_oms)` — one patient record.
-- `pat_get_procedures(p_oms)` — patient's procedures with doctor info. Compiles now; intentionally has no admin edit fields.
-- `pat_get_proc_meds(p_proc_id, p_oms)` — medications for a procedure **after ownership check**. See below.
-- `pat_get_proc(p_oms, p_proc_id)` — one procedure row **after ownership check**; raises `P0002` if it is not the patient's procedure.
-- `pat_count_procs(p_oms)`
-- `doc_get_doctor(p_license)` — one doctor record; replaces a direct `WHERE` over `v_all_doctors`.
-- `doc_get_patient(p_oms)` — one patient record for doctor use; replaces a direct `WHERE` over `v_all_patients`.
-- `doc_search_patients(p_query)` — up to 200 patients matching OMS substring or case-insensitive name; empty query returns all; replaces a direct `WHERE` over `v_all_patients`.
-- `doc_get_all_procs()` — all procedures with patient/doctor names joined inside SQL; replaces joins over `v_all_procs`, `v_all_patients` and `v_all_doctors`.
-- `doc_get_proc(p_proc_id)` — one procedure row; replaces a direct `WHERE` over `v_all_procs`.
-- `doc_get_patient_procs(p_oms)` — all procedures for a patient; intentionally no patient-ownership check.
-- `doc_get_proc_details(p_proc_id)` — procedure + joined `appl`/`meds`; inner joins mean procedures without medications return no rows.
-- `doc_get_doctor_procs(p_license)` — doctor's procedures with patient name joined inside SQL.
-- `doc_count_procs(p_license)`
+There is one neutral API for all roles; no `pat_*` / `doc_*` duplicates. Optional filters are applied inside SQL.
+
+- `get_patient(p_oms)` — one patient record; replaces the old `pat_get_patient` and `doc_get_patient`.
+- `search_patients(p_query)` — up to 200 patients matching OMS substring or case-insensitive name; empty query returns all.
+- `get_doctor(p_license)` — one doctor record.
+- `get_medications()` — medication catalog, ordered by name/method/id.
+- `get_procedures(p_pat_oms DEFAULT NULL, p_doc_license DEFAULT NULL)` — procedures with patient/doctor names joined in SQL; no arg = all, one arg = that patient's or that doctor's procedures. Replaces the old all/my/patient procedure functions.
+- `get_procedure(p_proc_id, p_pat_oms DEFAULT NULL)` — one procedure with joined names. When `p_pat_oms` is passed, ownership is checked and `P0002` is raised for a foreign procedure.
+- `get_procedure_medications(p_proc_id, p_pat_oms DEFAULT NULL)` — medications for a procedure. Reuses `get_procedure`'s ownership check when `p_pat_oms` is passed; procedures without medications return no rows.
+- `count_procedures(p_pat_oms DEFAULT NULL, p_doc_license DEFAULT NULL)` — unified count.
 
 #### Update/delete procedures
 
@@ -245,28 +241,30 @@ Trigger names: `pat_auth_delete/update`, `doc_auth_delete/update`, `admin_auth_d
 
 ### 3.3 Row-level authorization rule to copy
 
-`pat_get_proc_meds(p_proc_id int8, p_oms int8)` is the reference pattern:
+`get_procedure(p_proc_id int8, p_pat_oms int8 DEFAULT NULL)` holds the only ownership check:
 
 ```sql
-IF NOT EXISTS (
+IF p_pat_oms IS NOT NULL AND NOT EXISTS (
     SELECT 1
     FROM proc_lfv21 AS pr
     WHERE pr.proc_id_lfv21 = p_proc_id
-      AND pr.pat_oms_lfv21 = p_oms
+      AND pr.pat_oms_lfv21 = p_pat_oms
 ) THEN
-    RAISE EXCEPTION 'procedure % is not available for OMS %', p_proc_id, p_oms
+    RAISE EXCEPTION 'procedure % is not available for OMS %', p_proc_id, p_pat_oms
         USING ERRCODE = 'P0002';
 END IF;
 ```
+
+`get_procedure_medications(..., p_pat_oms)` calls `get_procedure` to reuse it. Listing routes use `get_procedures(p_pat_oms => ...)`, so filtering is also done in SQL; patient pages project only the safe columns.
 
 It raises `P0002` instead of returning an empty set. This is still a caller-supplied parameter check, not real RLS; the application must pass the authenticated OMS from `locals.user.subjectId`. Any caller passing another OMS is treated as authorized.
 
 ### 3.4 Known issues / cautions
 
-- `pat_get_procedures` had trailing commas in `RETURNS TABLE` and `SELECT`; both were removed so the function compiles. Do not reintroduce them.
+- The old `pat_get_procedures` had trailing commas in `RETURNS TABLE` and `SELECT`; `get_procedures` must not reintroduce them.
 - `docs/report.typ` still has `#lorem(...)` placeholders and empty sections; do not infer unwritten requirements from it.
-- Patient pages must never display `admin_login` or `admin_edit_timestamp`; use `pat_*` functions, not the unfiltered views.
-- Views and doctor/admin functions are unfiltered; never expose them through `/patient`.
+- Patient pages must never display `admin_login` or `admin_edit_timestamp`. They use `get_procedures(p_pat_oms => ...)` / `get_procedure(..., p_pat_oms)` and project only safe columns.
+- The views are unfiltered; never expose them directly through `/patient`.
 - No DB-level auth/RLS exists. Route guards + trusted session data are the entire boundary.
 
 ## 4. Authentication architecture
@@ -376,7 +374,7 @@ In Svelte components (root layout already returns `user`):
 1. Put it under `/admin/...`, `/doc/...`, or `/patient/...` so `roleForRoute()` classifies it.
 2. Ensure the subtree has a server guard: add/keep the role `+layout.server.js`, or give the page a `+page.server.js` `load` calling `requireRole(...)`.
 3. Add `+page.server.js` for DB data; pass `locals.user.subjectId` to procedures/functions.
-4. For patient data, enforce ownership in SQL the way `pat_get_proc_meds` does. Do not accept OMS from the URL or form.
+4. For patient data, pass the session OMS to `get_procedures` / `get_procedure` / `get_procedure_medications` so filtering and ownership checks happen in SQL. Do not accept OMS from the URL or form.
 5. Do not add client-side role checks as the security boundary.
 6. Do not touch the existing landing `.svelte` files unless explicitly asked.
 
