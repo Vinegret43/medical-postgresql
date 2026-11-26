@@ -7,12 +7,12 @@ This is a **study project**: a SvelteKit web app over a PostgreSQL database for 
 ## 0. Golden rules — read before touching anything
 
 1. **Role is never client-supplied.** No role dropdown, hidden input, URL param, or header may decide the user's role. The role comes from the route (`/admin`, `/doc`, `/patient`) and from `auth_users.role` in the DB.
-2. **Identity is never client-supplied.** Patient OMS, doctor license, and admin login used for DB queries must come from `event.locals.user.subjectId`, never from a form field or URL param.
+2. **Caller identity is never client-supplied.** Patient OMS, doctor license, and admin login used as the *signed-in caller identity* must come from `event.locals.user.subjectId`, never from a form field or URL param. **Admin target exception:** admin CRUD acts on somebody else, so `/admin/patients/[oms]`, `/admin/doctors/[license]`, and `/admin/meds/[id]` may use validated route params as resource keys. Those keys never change `locals.user`, never choose a role, and never authorize anything by themselves. See `docs/admin-subservice-spec.md`.
 3. **All auth decisions happen on the server.** Client-side checks are UX only and are not security.
-4. **Use Sequelize for `auth_users` / `sessions`.** For medical data, use the `pg` pool to call the procedures/functions/views in `create_db.sql`. **Do not issue direct `INSERT`/`UPDATE`/`DELETE` against `pat_lfv21`, `doc_lfv21`, `admin_lfv21`, `proc_lfv21`, `meds_lfv21`, or `appl_lfv21`; use the existing procedures instead.** Do not mix these layers casually.
+4. **Use Sequelize for `auth_users` / `sessions`.** For medical data, use the `pg` pool to call the procedures/functions/views in `create_db.sql`. **Do not issue direct `INSERT`/`UPDATE`/`DELETE` against `pat_lfv21`, `doc_lfv21`, `admin_lfv21`, `proc_lfv21`, `meds_lfv21`, or `appl_lfv21`; use the existing procedures instead.** Do not mix these layers casually. **Atomic-create exception:** creating a patient/doctor also creates its `auth_users` row in one application-layer transaction; for that flow only, call the existing medical create procedure through the same Sequelize transaction and create the `AuthUser` on that transaction. Never use direct DML against medical tables.
 5. **Do not add extra session columns.** `sessions` is intentionally only `token -> user_id`. No `created_at`, `expires_at`, or `revoked` unless the user explicitly asks.
 6. **Do not add extra user columns.** `auth_users` is intentionally minimal: `id`, `role`, `subject_id`, `credential`. No `created_at` / `is_active` without asking.
-7. **Keep credentials out of the browser.** `toPublicUser()` strips `credential`. The root layout returns only `{ id, role, subjectId }`.
+7. **Keep the signed-in user's credentials out of the browser.** `toPublicUser()` strips `credential`; the root layout returns only `{ id, role, subjectId }`. **Admin target-secret exception:** admin patient/doctor detail pages may return the target's TOTP secret for masked reveal and QR handoff. Never return the admin's own credential, never put target secrets in layout data, and revoke that target's sessions when the secret is regenerated.
 8. **Big IDs are strings.** OMS, license, and procedure IDs are `int8`. Never convert them to JS `Number`; use strings / BigInt-safe params.
 9. **A protected route must cause a server request.** SvelteKit client-side navigation to a route with no server `load` skips `hooks.server.js`. Add a `+page.server.js` load, or preferably a per-role `+layout.server.js` guard.
 10. **Wrong role → `error(403)`; anonymous → redirect to that role's login.** Never silently render another role's data.
@@ -27,6 +27,7 @@ This is a **study project**: a SvelteKit web app over a PostgreSQL database for 
 ├── create_db.sql             <- base DB: tables, indexes, views, procedures, functions, triggers
 ├── create_auth.sql           <- auth tables, demo users, auth-sync triggers; run after create_db.sql
 ├── docs/
+│   ├── admin-subservice-spec.md <- approved /admin implementation spec; AGENTS.md only carries exceptions
 │   ├── report.typ            <- assignment/spec source (partly unfinished placeholder text)
 │   └── report.pdf            <- generated PDF, ignored by git
 └── app/                      <- SvelteKit app
@@ -88,7 +89,7 @@ import { requireRole } from '#lib/server/auth.js';
 | `/admin/login` | Admin login form + `default` action | No, intentionally public |
 | `/doc/login` | Doctor login form + `default` action | No, intentionally public |
 | `/patient/login` | Patient login form + `default` action | No, intentionally public |
-| `/admin` and children | Admin service | Yes |
+| `/admin` and children | Admin service; CRUD details in `docs/admin-subservice-spec.md` | Yes |
 | `/doc` and children | Doctor service | Yes |
 | `/patient` and children | Patient service (procedures, profile, procedure details) | Yes |
 | `GET or POST /logout` | Clear session | No |
@@ -374,7 +375,7 @@ In Svelte components (root layout already returns `user`):
 1. Put it under `/admin/...`, `/doc/...`, or `/patient/...` so `roleForRoute()` classifies it.
 2. Ensure the subtree has a server guard: add/keep the role `+layout.server.js`, or give the page a `+page.server.js` `load` calling `requireRole(...)`.
 3. Add `+page.server.js` for DB data; pass `locals.user.subjectId` to procedures/functions.
-4. For patient data, pass the session OMS to `get_procedures` / `get_procedure` / `get_procedure_medications` so filtering and ownership checks happen in SQL. Do not accept OMS from the URL or form.
+4. For patient data, pass the session OMS to `get_procedures` / `get_procedure` / `get_procedure_medications` so filtering and ownership checks happen in SQL. Do not accept OMS from the URL or form. Admin pages are the documented exception: target OMS/license/UUID are resource keys from validated route params, while the admin's own login still comes from `locals.user.subjectId`.
 5. Do not add client-side role checks as the security boundary.
 6. Do not touch the existing landing `.svelte` files unless explicitly asked.
 
@@ -386,6 +387,7 @@ In Svelte components (root layout already returns `user`):
 - `maxAge: 604800` (7 days) is browser lifetime only; there is no DB expiry by design.
 - `hashPassword()` uses `scrypt` with a random 16-byte hex salt and stores `salt:hash`; `verifyPassword()` uses `timingSafeEqual`.
 - `verifyTotp()` uses `otpauth` with `window: 1` (accepts codes one step before/after).
+- Regenerating a patient's/doctor's TOTP secret also deletes that user's `sessions` rows so an old session cannot outlive the secret change.
 
 ## 5. Verification checklist
 
