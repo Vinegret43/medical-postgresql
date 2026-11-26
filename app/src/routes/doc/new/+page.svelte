@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { tick, untrack } from 'svelte';
 	import * as Alert from '#lib/components/ui/alert';
+	import * as ButtonGroup from '#lib/components/ui/button-group';
 	import * as Card from '#lib/components/ui/card';
 	import * as Command from '#lib/components/ui/command';
 	import * as Field from '#lib/components/ui/field';
@@ -140,18 +141,21 @@
 		</Card.Header>
 		<Card.Content>
 			<form method="GET" action="/doc/new">
-				<Field.FieldGroup class="gap-3 sm:flex-row sm:items-end">
+				<Field.FieldGroup class="gap-3 sm:flex-row items-center">
 					<Field.Field class="flex-1" data-invalid={Boolean(omsError)}>
 						<Field.FieldLabel for="oms-check">OMS policy number</Field.FieldLabel>
-						<Input
-							id="oms-check"
-							name="oms"
-							bind:value={oms}
-							oninput={scheduleLookup}
-							inputmode="numeric"
-							aria-invalid={Boolean(omsError)}
-							placeholder="e.g. 2000000001"
-						/>
+						<ButtonGroup.Root class="w-full" aria-label="Patient lookup">
+							<Input
+								id="oms-check"
+								name="oms"
+								bind:value={oms}
+								oninput={scheduleLookup}
+								inputmode="numeric"
+								aria-invalid={Boolean(omsError)}
+								placeholder="XXXXXXXXXX"
+							/>
+							<Button type="submit" variant="outline">Check patient</Button>
+						</ButtonGroup.Root>
 						{#if omsError}
 							<Field.FieldDescription>{omsError}</Field.FieldDescription>
 						{:else if patientPreview}
@@ -161,9 +165,6 @@
 							</Field.FieldDescription>
 						{/if}
 					</Field.Field>
-					<Button type="submit" variant="outline">
-						Check patient
-					</Button>
 				</Field.FieldGroup>
 			</form>
 		</Card.Content>
@@ -254,7 +255,7 @@
 									{/snippet}
 								</Popover.Trigger>
 								<Popover.Content class="w-[24rem] p-0">
-									<Command.Root>
+									<Command.Root disableInitialScroll>
 										<Command.Input placeholder="Search medications..." />
 										<Command.List>
 											<Command.Empty>No medications found.</Command.Empty>
@@ -277,19 +278,21 @@
 						</Field.Field>
 						<Field.Field>
 							<Field.FieldLabel for="dosage">Dosage</Field.FieldLabel>
-							<Input
-								id="dosage"
-								type="number"
-								min="0"
-								step="any"
-								bind:value={selectedDosage}
-								placeholder="e.g. 0.5"
-							/>
+							<ButtonGroup.Root class="w-full" aria-label="Medication dosage">
+								<Input
+									id="dosage"
+									type="number"
+									min="0"
+									step="any"
+									bind:value={selectedDosage}
+									placeholder="e.g. 0.5"
+								/>
+								<Button type="button" variant="outline" onclick={addMedication}>
+									<PlusIcon data-icon="inline-start" />
+									Add
+								</Button>
+							</ButtonGroup.Root>
 						</Field.Field>
-						<Button type="button" variant="outline" onclick={addMedication}>
-							<PlusIcon data-icon="inline-start" />
-							Add
-						</Button>
 					</Field.FieldGroup>
 					{#if medError}
 						<Field.FieldDescription>{medError}</Field.FieldDescription>
@@ -338,10 +341,13 @@
 					{/if}
 				</div>
 			</Card.Content>
-			<Card.Footer class="justify-between">
-				<Button href="/doc" variant="ghost" type="button">Cancel</Button>
-				<Button type="submit">Create procedure</Button>
-			</Card.Footer>
+		</Card.Root>
+		<Card.Root>
+    		<Card.Footer class="justify-between">
+        		<Button href="/doc" variant="ghost" type="button">Cancel</Button>
+        		<Button type="submit">Create procedure</Button>
+    		</Card.Footer>
 		</Card.Root>
 	</form>
+	<div class="h-4" aria-hidden="true"></div>
 </div>

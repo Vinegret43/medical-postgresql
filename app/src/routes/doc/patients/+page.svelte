@@ -1,4 +1,5 @@
 <script>
+	import * as ButtonGroup from '#lib/components/ui/button-group';
 	import * as Card from '#lib/components/ui/card';
 	import * as Empty from '#lib/components/ui/empty';
 	import * as Field from '#lib/components/ui/field';
@@ -26,16 +27,16 @@
 		</Card.Header>
 		<Card.Content>
 			<form method="GET" action="/doc/patients">
-				<Field.FieldGroup class="gap-3 sm:flex-row sm:items-end">
-					<Field.Field class="flex-1">
-						<Field.FieldLabel for="q">OMS or name</Field.FieldLabel>
+				<Field.Field>
+					<Field.FieldLabel for="q">OMS or name</Field.FieldLabel>
+					<ButtonGroup.Root class="w-full" aria-label="Patient search">
 						<Input id="q" name="q" value={data.q ?? ''} placeholder="e.g. Ivan or 2000000001" />
-					</Field.Field>
-					<Button type="submit">
-						<SearchIcon data-icon="inline-start" />
-						Search
-					</Button>
-				</Field.FieldGroup>
+						<Button type="submit" variant="outline">
+							<SearchIcon data-icon="inline-start" />
+							Search
+						</Button>
+					</ButtonGroup.Root>
+				</Field.Field>
 			</form>
 		</Card.Content>
 	</Card.Root>
