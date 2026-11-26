@@ -1,4 +1,6 @@
 <script>
+	import { goto } from '$app/navigation';
+	import { onDestroy, untrack } from 'svelte';
 	import * as ButtonGroup from '#lib/components/ui/button-group';
 	import * as Card from '#lib/components/ui/card';
 	import * as Empty from '#lib/components/ui/empty';
@@ -12,7 +14,26 @@
 	import UserRoundIcon from '@lucide/svelte/icons/user-round';
 
 	let { data } = $props();
+	let q = $state(untrack(() => data.q ?? ''));
 	let patients = $derived(data.patients ?? []);
+	let searchTimer;
+
+	function scheduleSearch() {
+		clearTimeout(searchTimer);
+		searchTimer = setTimeout(async () => {
+			const query = q.trim();
+			const target = query ? `/doc/patients?q=${encodeURIComponent(query)}` : '/doc/patients';
+
+			try {
+				// Same route, new query: SvelteKit re-runs the page load without a full reload.
+				await goto(target, { replace: true, reset: false });
+			} catch(err) {
+				// A newer keystroke cancelled this navigation; its own timer will reload.
+			}
+		}, 250);
+	}
+
+	onDestroy(() => clearTimeout(searchTimer));
 </script>
 
 <svelte:head>
@@ -23,14 +44,20 @@
 	<Card.Root>
 		<Card.Header>
 			<Card.Title>Find a patient</Card.Title>
-			<Card.Description>Search by OMS policy number or name.</Card.Description>
+			<Card.Description>Search by OMS policy number or name. Results update as you type.</Card.Description>
 		</Card.Header>
 		<Card.Content>
 			<form method="GET" action="/doc/patients">
 				<Field.Field>
 					<Field.FieldLabel for="q">OMS or name</Field.FieldLabel>
 					<ButtonGroup.Root class="w-full" aria-label="Patient search">
-						<Input id="q" name="q" value={data.q ?? ''} placeholder="e.g. Ivan or 2000000001" />
+						<Input
+							id="q"
+							name="q"
+							bind:value={q}
+							oninput={scheduleSearch}
+							placeholder="e.g. Ivan or 2000000001"
+						/>
 						<Button type="submit" variant="outline">
 							<SearchIcon data-icon="inline-start" />
 							Search
