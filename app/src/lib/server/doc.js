@@ -5,8 +5,7 @@ import { pool } from './db.js';
 export async function getDoctor(license) {
 	const { rows } = await pool.query(
 		`SELECT license, fullname, birthdate::text AS birthdate, phone
-		FROM v_all_doctors
-		WHERE license = $1::int8`,
+		FROM doc_get_doctor($1::int8)`,
 		[license]
 	);
 	return rows[0] ?? null;
@@ -17,7 +16,7 @@ export async function getMyProcedures(license) {
 		`SELECT
 			pr.proc_id,
 			pr.oms,
-			pat.fullname AS patient_fullname,
+			pr.patient_fullname,
 			pr.proc_time,
 			pr.proc_name,
 			pr.remarks,
@@ -25,7 +24,6 @@ export async function getMyProcedures(license) {
 			pr.admin_login,
 			pr.admin_edit_timestamp
 		FROM doc_get_doctor_procs($1::int8) AS pr
-		LEFT JOIN v_all_patients AS pat ON pat.oms = pr.oms
 		ORDER BY pr.proc_time DESC, pr.proc_id DESC`,
 		[license]
 	);
@@ -37,18 +35,16 @@ export async function getAllProcedures() {
 		`SELECT
 			pr.proc_id,
 			pr.oms,
-			pat.fullname AS patient_fullname,
+			pr.patient_fullname,
 			pr.license,
-			doc.fullname AS doctor_fullname,
+			pr.doctor_fullname,
 			pr.proc_time,
 			pr.proc_name,
 			pr.remarks,
 			pr.recommendations,
 			pr.admin_login,
 			pr.admin_edit_timestamp
-		FROM v_all_procs AS pr
-		LEFT JOIN v_all_patients AS pat ON pat.oms = pr.oms
-		LEFT JOIN v_all_doctors AS doc ON doc.license = pr.license
+		FROM doc_get_all_procs() AS pr
 		ORDER BY pr.proc_time DESC, pr.proc_id DESC`
 	);
 	return rows;
@@ -56,14 +52,10 @@ export async function getAllProcedures() {
 
 export async function searchPatients(query) {
 	const q = String(query ?? '').trim();
-	const pattern = `%${q}%`;
 	const { rows } = await pool.query(
 		`SELECT oms, fullname, birthdate::text AS birthdate, phone
-		FROM v_all_patients
-		WHERE $1 = '' OR oms::text LIKE $2 OR fullname ILIKE $2
-		ORDER BY fullname, oms
-		LIMIT 200`,
-		[q, pattern]
+		FROM doc_search_patients($1)`,
+		[q]
 	);
 	return rows;
 }
@@ -71,8 +63,7 @@ export async function searchPatients(query) {
 export async function getPatient(oms) {
 	const { rows } = await pool.query(
 		`SELECT oms, fullname, birthdate::text AS birthdate, phone
-		FROM v_all_patients
-		WHERE oms = $1::int8`,
+		FROM doc_get_patient($1::int8)`,
 		[oms]
 	);
 	return rows[0] ?? null;
@@ -111,8 +102,7 @@ export async function getProcedure(procId) {
 			recommendations,
 			admin_login,
 			admin_edit_timestamp
-		FROM v_all_procs
-		WHERE proc_id = $1::int8`,
+		FROM doc_get_proc($1::int8)`,
 		[procId]
 	);
 	return rows[0] ?? null;

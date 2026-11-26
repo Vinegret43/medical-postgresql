@@ -17,6 +17,7 @@ This is a **study project**: a SvelteKit web app over a PostgreSQL database for 
 9. **A protected route must cause a server request.** SvelteKit client-side navigation to a route with no server `load` skips `hooks.server.js`. Add a `+page.server.js` load, or preferably a per-role `+layout.server.js` guard.
 10. **Wrong role → `error(403)`; anonymous → redirect to that role's login.** Never silently render another role's data.
 11. **Do not silently rewrite the schema to work around SQL issues.** The known `pat_get_procedures` syntax errors were fixed explicitly; if new issues appear, ask before changing `create_db.sql`.
+12. **No `JOIN` or `WHERE` in application `pool.query` SELECTs.** Joins and filters belong in SQL functions/views in `create_db.sql`; app queries may only project columns and use `ORDER BY` / `LIMIT`. This applies to every medical-data SELECT, not just the doctor area.
 
 ## 1. Repository layout
 
@@ -181,10 +182,16 @@ All are **unfiltered**; do not expose them through the patient role.
 - `pat_get_patient(p_oms)` — one patient record.
 - `pat_get_procedures(p_oms)` — patient's procedures with doctor info. Compiles now; intentionally has no admin edit fields.
 - `pat_get_proc_meds(p_proc_id, p_oms)` — medications for a procedure **after ownership check**. See below.
+- `pat_get_proc(p_oms, p_proc_id)` — one procedure row **after ownership check**; raises `P0002` if it is not the patient's procedure.
 - `pat_count_procs(p_oms)`
+- `doc_get_doctor(p_license)` — one doctor record; replaces a direct `WHERE` over `v_all_doctors`.
+- `doc_get_patient(p_oms)` — one patient record for doctor use; replaces a direct `WHERE` over `v_all_patients`.
+- `doc_search_patients(p_query)` — up to 200 patients matching OMS substring or case-insensitive name; empty query returns all; replaces a direct `WHERE` over `v_all_patients`.
+- `doc_get_all_procs()` — all procedures with patient/doctor names joined inside SQL; replaces joins over `v_all_procs`, `v_all_patients` and `v_all_doctors`.
+- `doc_get_proc(p_proc_id)` — one procedure row; replaces a direct `WHERE` over `v_all_procs`.
 - `doc_get_patient_procs(p_oms)` — all procedures for a patient; intentionally no patient-ownership check.
 - `doc_get_proc_details(p_proc_id)` — procedure + joined `appl`/`meds`; inner joins mean procedures without medications return no rows.
-- `doc_get_doctor_procs(p_license)`
+- `doc_get_doctor_procs(p_license)` — doctor's procedures with patient name joined inside SQL.
 - `doc_count_procs(p_license)`
 
 #### Update/delete procedures
