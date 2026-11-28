@@ -186,9 +186,6 @@ $$;
 -- ============================================================================
 --                                 Retrieve
 -- ============================================================================
--- One neutral API for every role. There are no DB roles/RLS here, so the same
--- functions serve admin, doctor and patient. When a caller may only see one
--- patient's data, pass p_pat_oms: the ownership check is then done in SQL.
 
 CREATE VIEW v_patients AS
 SELECT
@@ -221,7 +218,6 @@ SELECT
     m.proc_meds_method_lfv21 AS method
 FROM meds_lfv21 AS m;
 
--- All procedure columns without joins; functions below add the joins/filters.
 CREATE VIEW v_procs AS
 SELECT
     pr.proc_id_lfv21 AS proc_id,
