@@ -16,19 +16,19 @@ DO $$
 DECLARE
     v_proc_id int8;
 BEGIN
-    CALL admin_create_patient(2000000001, 'Ivan Ivanov', DATE '1990-05-14', '+79991234567');
-    CALL admin_create_doctor(1000000001, 'Maria Petrova', DATE '1984-03-12', '+79997654321');
+    CALL admin_create_patient(2000000001, 'Иван Иванов', DATE '1990-05-14', '+79991234567');
+    CALL admin_create_doctor(1000000001, 'Мария Петрова', DATE '1984-03-12', '+79997654321');
 
-    CALL admin_create_medication('9f1b8c2e-5d6a-4f0b-9a3c-1d2e3f4a5b61'::uuid, 'Paracetamol', 'oral');
-    CALL admin_create_medication('3c7d9e1a-2b4f-4c8d-8e6a-7f9b0c1d2e34'::uuid, 'Ibuprofen', 'oral');
-    CALL admin_create_medication('a4b5c6d7-8e9f-4a1b-8c2d-3e4f5a6b7c89'::uuid, 'Hydrocortisone', 'topical');
+    CALL admin_create_medication('9f1b8c2e-5d6a-4f0b-9a3c-1d2e3f4a5b61'::uuid, 'Парацетамол', 'внутрь');
+    CALL admin_create_medication('3c7d9e1a-2b4f-4c8d-8e6a-7f9b0c1d2e34'::uuid, 'Ибупрофен', 'внутрь');
+    CALL admin_create_medication('a4b5c6d7-8e9f-4a1b-8c2d-3e4f5a6b7c89'::uuid, 'Гидрокортизон', 'наружно');
 
     CALL doc_create_proc(
         p_oms => 2000000001,
         p_license => 1000000001,
-        p_name => 'Consultation',
-        p_remarks => 'Routine check-up',
-        p_recommendations => 'Rest and drink plenty of fluids',
+        p_name => 'Консультация',
+        p_remarks => 'Плановый осмотр',
+        p_recommendations => 'Отдых и обильное питьё',
         p_time => TIMESTAMPTZ '2026-11-10 10:00:00+00',
         p_proc_id => v_proc_id
     );
@@ -38,9 +38,9 @@ BEGIN
     CALL doc_create_proc(
         p_oms => 2000000001,
         p_license => 1000000001,
-        p_name => 'Dressing change',
-        p_remarks => 'Small wound on the left hand',
-        p_recommendations => 'Keep the wound clean and dry',
+        p_name => 'Перевязка',
+        p_remarks => 'Небольшая рана на левой руке',
+        p_recommendations => 'Держать рану чистой и сухой',
         p_time => TIMESTAMPTZ '2026-11-15 14:30:00+00',
         p_proc_id => v_proc_id
     );
@@ -49,9 +49,9 @@ BEGIN
     CALL doc_create_proc(
         p_oms => 2000000001,
         p_license => 1000000001,
-        p_name => 'Follow-up consultation',
-        p_remarks => 'Recovery confirmed',
-        p_recommendations => 'No further visits needed',
+        p_name => 'Повторная консультация',
+        p_remarks => 'Выздоровление подтверждено',
+        p_recommendations => 'В дальнейших посещениях врача не нуждается',
         p_time => TIMESTAMPTZ '2026-11-22 09:00:00+00',
         p_proc_id => v_proc_id
     );
