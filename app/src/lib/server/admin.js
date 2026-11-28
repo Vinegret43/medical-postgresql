@@ -1,12 +1,12 @@
 import QRCode from 'qrcode';
 import * as OTPAuth from 'otpauth';
 import { AuthUser, Session, pool, sequelize } from './db.js';
+import { dateTimeLocalToIso } from '#lib/timezone.js';
 
 const INT8_MAX = 2n ** 63n - 1n;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const PHONE_RE = /^\+7\d{10}$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const DATETIME_LOCAL_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 
 export class AdminError extends Error {
 	constructor(message, code, cause) {
@@ -81,13 +81,10 @@ export function isValidDate(value) {
 }
 
 export function isValidDateTimeLocal(value) {
-	return typeof value === 'string' && DATETIME_LOCAL_RE.test(value) && !Number.isNaN(new Date(`${value}Z`).getTime());
+	return dateTimeLocalToIso(value) !== null;
 }
 
-export function dateTimeLocalToIso(value) {
-	if (!isValidDateTimeLocal(value)) return null;
-	return new Date(`${value}Z`).toISOString();
-}
+export { dateTimeLocalToIso };
 
 export function nullableText(value) {
 	const text = String(value ?? '').trim();
@@ -435,7 +432,7 @@ export async function updateProcedure(id, fields, adminLogin) {
 	if (!current) throw new AdminError('Запись не найдена.', 'P0002');
 
 	let procTime = fields.proc_time ?? current.proc_time;
-	if (typeof procTime === 'string' && DATETIME_LOCAL_RE.test(procTime)) {
+	if (typeof procTime === 'string' && isValidDateTimeLocal(procTime)) {
 		procTime = dateTimeLocalToIso(procTime);
 	}
 	if (!procTime) throw new AdminError('Введите корректное время процедуры.', '22007');

@@ -6,6 +6,7 @@
 	import { Input } from '#lib/components/ui/input';
 	import { Textarea } from '#lib/components/ui/textarea';
 	import { formatDate, formatDateTime } from '#lib/format.js';
+	import { toDateTimeLocal } from '#lib/timezone.js';
 	import PencilIcon from '@lucide/svelte/icons/pencil';
 	import XIcon from '@lucide/svelte/icons/x';
 
@@ -36,13 +37,7 @@
 		if (raw === null || raw === undefined) return '';
 		if (inputType !== 'datetime-local') return String(raw);
 
-		const date = raw instanceof Date ? raw : new Date(raw);
-		if (Number.isNaN(date.getTime())) return String(raw);
-		const pad = (part) => String(part).padStart(2, '0');
-		return (
-			`${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}` +
-			`T${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`
-		);
+		return toDateTimeLocal(raw) || String(raw);
 	}
 
 	$effect(() => {

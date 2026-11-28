@@ -5,18 +5,10 @@ import {
 	getMedications,
 	getPatient
 } from '#lib/server/doc.js';
+import { dateTimeLocalToIso, toDateTimeLocal } from '#lib/timezone.js';
 
 const OMS_RE = /^\d{1,19}$/;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const DATETIME_LOCAL_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
-
-function toDateTimeLocal(date) {
-	const pad = (value) => String(value).padStart(2, '0');
-	return (
-		`${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}` +
-		`T${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`
-	);
-}
 
 export async function load(event) {
 	requireRole('doctor', event);
@@ -81,14 +73,8 @@ export const actions = {
 
 		let procTime = null;
 		if (procTimeRaw) {
-			if (!DATETIME_LOCAL_RE.test(procTimeRaw)) {
-				return invalid('Введите корректное время процедуры.');
-			}
-			const parsed = new Date(`${procTimeRaw}Z`);
-			if (Number.isNaN(parsed.getTime())) {
-				return invalid('Введите корректное время процедуры.');
-			}
-			procTime = parsed.toISOString();
+			procTime = dateTimeLocalToIso(procTimeRaw);
+			if (!procTime) return invalid('Введите корректное время процедуры.');
 		}
 
 		const catalog = await getMedications();

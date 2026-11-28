@@ -177,7 +177,7 @@
 			<Card.Header>
 				<Card.Title>Детали процедуры</Card.Title>
 				<Card.Description>
-					Форма была открыта в {data.openedAtLocal} UTC. Ниже можно изменить время.
+					Форма была открыта в {data.openedAtLocal} МСК. Ниже можно изменить время.
 				</Card.Description>
 			</Card.Header>
 			<Card.Content>
@@ -194,7 +194,7 @@
 						/>
 					</Field.Field>
 					<Field.Field>
-						<Field.FieldLabel for="proc_time">Время процедуры (UTC)</Field.FieldLabel>
+						<Field.FieldLabel for="proc_time">Время процедуры (МСК)</Field.FieldLabel>
 						<Input id="proc_time" name="proc_time" type="datetime-local" bind:value={procTime} />
 						<Field.FieldDescription>
 							Оставьте без изменений, чтобы сохранить время открытия формы.

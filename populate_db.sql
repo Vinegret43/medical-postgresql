@@ -29,7 +29,7 @@ BEGIN
         p_name => 'Консультация',
         p_remarks => 'Плановый осмотр',
         p_recommendations => 'Отдых и обильное питьё',
-        p_time => TIMESTAMPTZ '2026-11-10 10:00:00+00',
+        p_time => TIMESTAMPTZ '2026-11-10 10:00:00+03',
         p_proc_id => v_proc_id
     );
     CALL doc_create_appl(v_proc_id, '9f1b8c2e-5d6a-4f0b-9a3c-1d2e3f4a5b61'::uuid, 1.0);
@@ -41,7 +41,7 @@ BEGIN
         p_name => 'Перевязка',
         p_remarks => 'Небольшая рана на левой руке',
         p_recommendations => 'Держать рану чистой и сухой',
-        p_time => TIMESTAMPTZ '2026-11-15 14:30:00+00',
+        p_time => TIMESTAMPTZ '2026-11-15 14:30:00+03',
         p_proc_id => v_proc_id
     );
     CALL doc_create_appl(v_proc_id, 'a4b5c6d7-8e9f-4a1b-8c2d-3e4f5a6b7c89'::uuid, 0.1);
@@ -52,7 +52,7 @@ BEGIN
         p_name => 'Повторная консультация',
         p_remarks => 'Выздоровление подтверждено',
         p_recommendations => 'В дальнейших посещениях врача не нуждается',
-        p_time => TIMESTAMPTZ '2026-11-22 09:00:00+00',
+        p_time => TIMESTAMPTZ '2026-11-22 09:00:00+03',
         p_proc_id => v_proc_id
     );
 

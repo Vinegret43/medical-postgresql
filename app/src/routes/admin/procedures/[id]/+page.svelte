@@ -119,7 +119,7 @@
 					error={fieldError('proc_name')}
 				/>
 				<InlineEdit
-					label="Время процедуры (UTC)"
+					label="Время процедуры (МСК)"
 					name="proc_time"
 					type="datetime-local"
 					value={data.procedure.proc_time}

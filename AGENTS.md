@@ -268,6 +268,7 @@ It raises `P0002` instead of returning an empty set. This is still a caller-supp
 - Patient pages must never display `admin_login` or `admin_edit_timestamp`. They use `get_procedures(p_pat_oms => ...)` / `get_procedure(..., p_pat_oms)` and project only safe columns.
 - The views are unfiltered; never expose them directly through `/patient`.
 - No DB-level auth/RLS exists. Route guards + trusted session data are the entire boundary.
+- Procedure timestamps are displayed in the fixed `Europe/Moscow` zone (`МСК`), not UTC. `src/lib/timezone.js` owns the shared wall-clock ↔ ISO helpers used by `format.js`, `doc/new/+page.server.js`, `admin.js` and `InlineEdit.svelte`; keep the zone fixed so SSR and client markup agree. Demo procedure times in `populate_db.sql` use `+03`.
 
 ## 4. Authentication architecture
 
