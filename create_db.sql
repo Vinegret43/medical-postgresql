@@ -206,6 +206,14 @@ SELECT
     d.doc_phone_lfv21 AS phone
 FROM doc_lfv21 AS d;
 
+CREATE VIEW v_admins AS
+SELECT
+    a.admin_login_lfv21 AS login,
+    a.admin_fullname_lfv21 AS fullname,
+    a.admin_birthdate_lfv21 AS birthdate,
+    a.admin_phone_lfv21 AS phone
+FROM admin_lfv21 AS a;
+
 CREATE VIEW v_meds AS
 SELECT
     m.proc_meds_id_lfv21 AS id,
@@ -270,6 +278,36 @@ LANGUAGE sql STABLE AS $$
     WHERE v.license = p_license;
 $$;
 
+CREATE FUNCTION get_admin(p_login varchar(30))
+RETURNS TABLE (
+    login varchar(30),
+    fullname varchar(70),
+    birthdate date,
+    phone varchar(15)
+)
+LANGUAGE sql STABLE AS $$
+    SELECT v.login, v.fullname, v.birthdate, v.phone
+    FROM v_admins AS v
+    WHERE v.login = p_login;
+$$;
+
+CREATE FUNCTION search_doctors(p_query varchar)
+RETURNS TABLE (
+    license int8,
+    fullname varchar(70),
+    birthdate date,
+    phone varchar(15)
+)
+LANGUAGE sql STABLE AS $$
+    SELECT v.license, v.fullname, v.birthdate, v.phone
+    FROM v_doctors AS v
+    WHERE COALESCE(p_query, '') = ''
+       OR v.license::text LIKE '%' || p_query || '%'
+       OR v.fullname ILIKE '%' || p_query || '%'
+    ORDER BY v.fullname, v.license
+    LIMIT 200;
+$$;
+
 CREATE FUNCTION get_medications()
 RETURNS TABLE (
     id uuid,
@@ -280,6 +318,18 @@ LANGUAGE sql STABLE AS $$
     SELECT v.id, v.name, v.method
     FROM v_meds AS v
     ORDER BY v.name, v.method, v.id;
+$$;
+
+CREATE FUNCTION get_medication(p_id uuid)
+RETURNS TABLE (
+    id uuid,
+    name varchar(50),
+    method varchar(30)
+)
+LANGUAGE sql STABLE AS $$
+    SELECT v.id, v.name, v.method
+    FROM v_meds AS v
+    WHERE v.id = p_id;
 $$;
 
 CREATE FUNCTION get_procedures(
@@ -468,6 +518,7 @@ CREATE PROCEDURE admin_update_proc(
     IN p_name varchar(200),
     IN p_remarks text,
     IN p_recommendations text,
+    IN p_time timestamptz,
     IN p_admin_login varchar(30)
 )
 LANGUAGE plpgsql AS $$
@@ -477,7 +528,26 @@ BEGIN
         proc_name_lfv21 = p_name,
         proc_remarks_lfv21 = p_remarks,
         proc_recommendations_lfv21 = p_recommendations,
+        proc_time_lfv21 = p_time,
         admin_login_lfv21 = p_admin_login
+    WHERE pr.proc_id_lfv21 = p_proc_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'procedure % not found', p_proc_id USING ERRCODE = 'P0002';
+    END IF;
+END;
+$$;
+
+-- Application edits are not field updates on proc_lfv21, but they still need to
+-- be attributed to the signed-in admin. The existing trigger sets the timestamp.
+CREATE PROCEDURE admin_touch_proc(
+    IN p_proc_id int8,
+    IN p_admin_login varchar(30)
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    UPDATE proc_lfv21 AS pr
+    SET admin_login_lfv21 = p_admin_login
     WHERE pr.proc_id_lfv21 = p_proc_id;
 
     IF NOT FOUND THEN
@@ -653,57 +723,3 @@ CREATE INDEX idx_proc_doc_license ON proc_lfv21 (doc_license_lfv21);
 CREATE INDEX idx_proc_admin_login ON proc_lfv21 (admin_login_lfv21);
 CREATE INDEX idx_proc_time ON proc_lfv21 (proc_time_lfv21);
 CREATE INDEX idx_appl_med ON appl_lfv21 (proc_meds_id_lfv21);
-
--- ============================================================================
---                              Demo data
--- ============================================================================
--- Matches the demo users in create_auth.sql:
---   patient OMS 2000000001, doctor license 1000000001.
--- Created only through the procedures above; no direct DML on base tables.
--- The third procedure intentionally has no medications to exercise the empty state.
-
-DO $$
-DECLARE
-    v_proc_id int8;
-BEGIN
-    CALL admin_create_patient(2000000001, 'Ivan Ivanov', DATE '1990-05-14', '+79991234567');
-    CALL admin_create_doctor(1000000001, 'Maria Petrova', DATE '1984-03-12', '+79997654321');
-
-    CALL admin_create_medication('9f1b8c2e-5d6a-4f0b-9a3c-1d2e3f4a5b61'::uuid, 'Paracetamol', 'oral');
-    CALL admin_create_medication('3c7d9e1a-2b4f-4c8d-8e6a-7f9b0c1d2e34'::uuid, 'Ibuprofen', 'oral');
-    CALL admin_create_medication('a4b5c6d7-8e9f-4a1b-8c2d-3e4f5a6b7c89'::uuid, 'Hydrocortisone', 'topical');
-
-    CALL doc_create_proc(
-        p_oms => 2000000001,
-        p_license => 1000000001,
-        p_name => 'Consultation',
-        p_remarks => 'Routine check-up',
-        p_recommendations => 'Rest and drink plenty of fluids',
-        p_time => TIMESTAMPTZ '2026-11-10 10:00:00+00',
-        p_proc_id => v_proc_id
-    );
-    CALL doc_create_appl(v_proc_id, '9f1b8c2e-5d6a-4f0b-9a3c-1d2e3f4a5b61'::uuid, 1.0);
-    CALL doc_create_appl(v_proc_id, '3c7d9e1a-2b4f-4c8d-8e6a-7f9b0c1d2e34'::uuid, 0.4);
-
-    CALL doc_create_proc(
-        p_oms => 2000000001,
-        p_license => 1000000001,
-        p_name => 'Dressing change',
-        p_remarks => 'Small wound on the left hand',
-        p_recommendations => 'Keep the wound clean and dry',
-        p_time => TIMESTAMPTZ '2026-11-15 14:30:00+00',
-        p_proc_id => v_proc_id
-    );
-    CALL doc_create_appl(v_proc_id, 'a4b5c6d7-8e9f-4a1b-8c2d-3e4f5a6b7c89'::uuid, 0.1);
-
-    CALL doc_create_proc(
-        p_oms => 2000000001,
-        p_license => 1000000001,
-        p_name => 'Follow-up consultation',
-        p_remarks => 'Recovery confirmed',
-        p_recommendations => 'No further visits needed',
-        p_time => TIMESTAMPTZ '2026-11-22 09:00:00+00',
-        p_proc_id => v_proc_id
-    );
-END;
-$$;

@@ -7,7 +7,7 @@ This is a **study project**: a SvelteKit web app over a PostgreSQL database for 
 ## 0. Golden rules — read before touching anything
 
 1. **Role is never client-supplied.** No role dropdown, hidden input, URL param, or header may decide the user's role. The role comes from the route (`/admin`, `/doc`, `/patient`) and from `auth_users.role` in the DB.
-2. **Caller identity is never client-supplied.** Patient OMS, doctor license, and admin login used as the *signed-in caller identity* must come from `event.locals.user.subjectId`, never from a form field or URL param. **Admin target exception:** admin CRUD acts on somebody else, so `/admin/patients/[oms]`, `/admin/doctors/[license]`, and `/admin/meds/[id]` may use validated route params as resource keys. Those keys never change `locals.user`, never choose a role, and never authorize anything by themselves. See `docs/admin-subservice-spec.md`.
+2. **Caller identity is never client-supplied.** Patient OMS, doctor license, and admin login used as the *signed-in caller identity* must come from `event.locals.user.subjectId`, never from a form field or URL param. **Admin target exception:** admin CRUD acts on somebody else, so `/admin/patients/[oms]`, `/admin/doctors/[license]`, and `/admin/meds/[id]` may use validated route params as resource keys. Those keys never change `locals.user`, never choose a role, and never authorize anything by themselves.
 3. **All auth decisions happen on the server.** Client-side checks are UX only and are not security.
 4. **Use Sequelize for `auth_users` / `sessions`.** For medical data, use the `pg` pool to call the procedures/functions/views in `create_db.sql`. **Do not issue direct `INSERT`/`UPDATE`/`DELETE` against `pat_lfv21`, `doc_lfv21`, `admin_lfv21`, `proc_lfv21`, `meds_lfv21`, or `appl_lfv21`; use the existing procedures instead.** Do not mix these layers casually. **Atomic-create exception:** creating a patient/doctor also creates its `auth_users` row in one application-layer transaction; for that flow only, call the existing medical create procedure through the same Sequelize transaction and create the `AuthUser` on that transaction. Never use direct DML against medical tables.
 5. **Do not add extra session columns.** `sessions` is intentionally only `token -> user_id`. No `created_at`, `expires_at`, or `revoked` unless the user explicitly asks.
@@ -27,7 +27,6 @@ This is a **study project**: a SvelteKit web app over a PostgreSQL database for 
 ├── create_db.sql             <- base DB: tables, indexes, views, procedures, functions, triggers
 ├── create_auth.sql           <- auth tables, demo users, auth-sync triggers; run after create_db.sql
 ├── docs/
-│   ├── admin-subservice-spec.md <- approved /admin implementation spec; AGENTS.md only carries exceptions
 │   ├── report.typ            <- assignment/spec source (partly unfinished placeholder text)
 │   └── report.pdf            <- generated PDF, ignored by git
 └── app/                      <- SvelteKit app
@@ -89,7 +88,7 @@ import { requireRole } from '#lib/server/auth.js';
 | `/admin/login` | Admin login form + `default` action | No, intentionally public |
 | `/doc/login` | Doctor login form + `default` action | No, intentionally public |
 | `/patient/login` | Patient login form + `default` action | No, intentionally public |
-| `/admin` and children | Admin service; CRUD details in `docs/admin-subservice-spec.md` | Yes |
+| `/admin` and children | Admin service: patients, doctors, meds, procedures, profile | Yes |
 | `/doc` and children | Doctor service | Yes |
 | `/patient` and children | Patient service (procedures, profile, procedure details) | Yes |
 | `GET or POST /logout` | Clear session | No |
@@ -154,7 +153,7 @@ Database: `medical_lfv21`. Table prefixes (`pat_`, `doc_`, `admin_`) are naming 
 |---|---|---|
 | `pat_lfv21` | `pat_oms_lfv21 int8` | `pat_fullname_lfv21 varchar(70)`, `pat_birthdate_lfv21 date`, `pat_phone_lfv21 varchar(15)`. Phone trigger requires `+7XXXXXXXXXX`. |
 | `doc_lfv21` | `doc_license_lfv21 int8` | `doc_fullname_lfv21 varchar(70)`, `doc_birthdate_lfv21 date`, `doc_phone_lfv21 varchar(15)`. Same phone trigger. |
-| `admin_lfv21` | `admin_login_lfv21 varchar(30)` | `admin_fullname_lfv21 varchar(70)`, `admin_birthdate_lfv21 date`, `admin_phone_lfv21 varchar(15)`. Same phone trigger. Admin accounts are managed manually; there is no `admin_create_admin` procedure. |
+| `admin_lfv21` | `admin_login_lfv21 varchar(30)` | `admin_fullname_lfv21 varchar(70)`, `admin_birthdate_lfv21 date`, `admin_phone_lfv21 varchar(15)`. Same phone trigger. Admin accounts are managed manually; there is no `admin_create_admin` procedure. `create_db.sql` seeds one demo `admin` row to satisfy the procedure audit FK. |
 | `proc_lfv21` | `proc_id_lfv21 int8 GENERATED ALWAYS AS IDENTITY` | `pat_oms_lfv21` FK→patient `RESTRICT/CASCADE`; `doc_license_lfv21` FK→doctor `RESTRICT/CASCADE`; `proc_time_lfv21 timestamptz`; `proc_name_lfv21 varchar(200)`; nullable `proc_remarks_lfv21 text`, `proc_recommendations_lfv21 text`, `admin_login_lfv21 varchar(30)` FK→admin `SET NULL/CASCADE`, `admin_edit_timestamp_lfv21 timestamptz`. |
 | `meds_lfv21` | `proc_meds_id_lfv21 uuid` | Manually supplied "честный знак" ID, not DB-generated. `proc_meds_name_lfv21 varchar(50)`, `proc_meds_method_lfv21 varchar(30)`. `(name, method)` is intentionally not unique. |
 | `appl_lfv21` | composite `(proc_id_lfv21, proc_meds_id_lfv21)` | FK→`proc_lfv21` `CASCADE/RESTRICT`; FK→`meds_lfv21` `RESTRICT/RESTRICT`; `proc_meds_dosage_lfv21 float8 CHECK (> 0)`. |
@@ -167,6 +166,7 @@ Canonical unfiltered projections; the functions below add all joins/filters. Do 
 
 - `v_patients`
 - `v_doctors`
+- `v_admins`
 - `v_meds`
 - `v_procs`
 
@@ -185,6 +185,7 @@ There is one neutral API for all roles; no `pat_*` / `doc_*` duplicates. Optiona
 - `get_patient(p_oms)` — one patient record; replaces the old `pat_get_patient` and `doc_get_patient`.
 - `search_patients(p_query)` — up to 200 patients matching OMS substring or case-insensitive name; empty query returns all.
 - `get_doctor(p_license)` — one doctor record.
+- `get_admin(p_login)` — one admin record, used by `/admin/profile` with the session login.
 - `get_medications()` — medication catalog, ordered by name/method/id.
 - `get_procedures(p_pat_oms DEFAULT NULL, p_doc_license DEFAULT NULL)` — procedures with patient/doctor names joined in SQL; no arg = all, one arg = that patient's or that doctor's procedures. Replaces the old all/my/patient procedure functions.
 - `get_procedure(p_proc_id, p_pat_oms DEFAULT NULL)` — one procedure with joined names. When `p_pat_oms` is passed, ownership is checked and `P0002` is raised for a foreign procedure.
@@ -238,7 +239,7 @@ Trigger names: `pat_auth_delete/update`, `doc_auth_delete/update`, `admin_auth_d
 | doctor | `1000000001` | TOTP secret `JBSWY3DPEHPK3PXP` |
 | patient | `2000000001` | TOTP secret `GEZDGNBVGY3TQOJQ` |
 
-`create_db.sql` now seeds demo base rows for the patient (OMS `2000000001`) and doctor (license `1000000001`), three procedures and three medications, all via the existing procedures. There is still no seeded `admin_lfv21` row; admins are managed manually. Re-running `create_db.sql` drops and recreates the database (and the demo data).
+`create_db.sql` now seeds demo base rows for the admin (login `admin`, matching the demo auth user), patient (OMS `2000000001`) and doctor (license `1000000001`), three procedures and three medications. Patient/doctor/meds/procedures go through the existing procedures; the demo admin is a direct seed insert because there is no admin create procedure. Other admins are still managed manually. Re-running `create_db.sql` drops and recreates the database (and the demo data).
 
 ### 3.3 Row-level authorization rule to copy
 

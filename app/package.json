@@ -40,6 +40,7 @@
 	"dependencies": {
 		"otpauth": "^9.6.0",
 		"pg": "^8.23.1",
+		"qrcode": "^1.5.4",
 		"sequelize": "^6.37.8"
 	}
 }

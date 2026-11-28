@@ -28,11 +28,6 @@ CREATE TABLE sessions (
     user_id uuid NOT NULL REFERENCES auth_users(id) ON DELETE CASCADE
 );
 
-INSERT INTO auth_users (id, role, subject_id, credential) VALUES
-    ('11111111-1111-4111-8111-111111111111', 'admin', 'admin',
-     'fd1253e07b821a9bc318aa669b7237a3:4a67552e9511b01ce9538f4efa95bdb33370016e5da1098ff21b9404470227d2505e60d3b1999626af5437b476aafadd900308d8084b0466983530fa430a3353'),
-    ('22222222-2222-4222-8222-222222222222', 'doctor', '1000000001', 'JBSWY3DPEHPK3PXP'),
-    ('33333333-3333-4333-8333-333333333333', 'patient', '2000000001', 'GEZDGNBVGY3TQOJQ');
 
 -- auth_users.subject_id cannot be a foreign key: it points at one of three
 -- different tables depending on the role. Triggers keep it consistent instead.
