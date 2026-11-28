@@ -12,15 +12,15 @@
 </script>
 
 <svelte:head>
-	<title>My procedures</title>
+	<title>Мои процедуры</title>
 </svelte:head>
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>My procedures</Card.Title>
-		<Card.Description>Procedures recorded under your license.</Card.Description>
+		<Card.Title>Мои процедуры</Card.Title>
+		<Card.Description>Процедуры, записанные под вашей лицензией.</Card.Description>
 		<Card.Action>
-			<Badge variant="secondary">{procedures.length} total</Badge>
+			<Badge variant="secondary">Всего: {procedures.length}</Badge>
 		</Card.Action>
 	</Card.Header>
 	<Card.Content>
@@ -28,23 +28,23 @@
 			<Empty.Root>
 				<Empty.Header>
 					<Empty.Media variant="icon"><ClipboardListIcon /></Empty.Media>
-					<Empty.Title>No procedures yet</Empty.Title>
+					<Empty.Title>Процедур пока нет</Empty.Title>
 					<Empty.Description>
-						Procedures you create will appear here.
+						Созданные вами процедуры появятся здесь.
 					</Empty.Description>
 				</Empty.Header>
 			</Empty.Root>
 		{:else}
 			<Table.Root>
-				<Table.Caption>Your recorded procedures.</Table.Caption>
+				<Table.Caption>Записанные вами процедуры.</Table.Caption>
 				<Table.Header>
 					<Table.Row>
-						<Table.Head>Date</Table.Head>
-						<Table.Head>Patient</Table.Head>
-						<Table.Head>Procedure</Table.Head>
-						<Table.Head>Remarks</Table.Head>
-						<Table.Head>Recommendations</Table.Head>
-						<Table.Head class="text-right">Details</Table.Head>
+						<Table.Head>Дата</Table.Head>
+						<Table.Head>Пациент</Table.Head>
+						<Table.Head>Процедура</Table.Head>
+						<Table.Head>Замечания</Table.Head>
+						<Table.Head>Рекомендации</Table.Head>
+						<Table.Head class="text-right">Подробнее</Table.Head>
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
@@ -72,7 +72,7 @@
 							</Table.Cell>
 							<Table.Cell class="text-right">
 								<Button href={`/doc/procedure/${procedure.proc_id}`} variant="link" size="sm">
-									View
+									Просмотр
 								</Button>
 							</Table.Cell>
 						</Table.Row>

@@ -15,14 +15,14 @@ export async function load(event) {
 	requireRole('admin', event);
 	const { id } = event.params;
 
-	if (!isValidUuid(id)) error(400, 'Invalid medication UUID');
+	if (!isValidUuid(id)) error(400, 'Некорректный UUID препарата');
 
 	try {
 		const medication = await getMedication(id);
-		if (!medication) error(404, 'Medication not found');
+		if (!medication) error(404, 'Препарат не найден');
 		return { medication };
 	} catch (err) {
-		if (isNotFound(err)) error(404, 'Medication not found');
+		if (isNotFound(err)) error(404, 'Препарат не найден');
 		throw err;
 	}
 }
@@ -31,7 +31,7 @@ export const actions = {
 	updateField: async (event) => {
 		requireRole('admin', event);
 		const { id } = event.params;
-		if (!isValidUuid(id)) return fail(400, { message: 'Enter a valid UUID.' });
+		if (!isValidUuid(id)) return fail(400, { message: 'Введите корректный UUID.' });
 
 		const data = await event.request.formData();
 		const field = String(data.get('field') ?? '');
@@ -39,13 +39,16 @@ export const actions = {
 		const values = { [field]: value };
 
 		if (!FIELDS.has(field)) {
-			return fail(400, { message: 'Unknown medication field.', field, values });
+			return fail(400, { message: 'Неизвестное поле препарата.', field, values });
 		}
 
 		const max = field === 'name' ? 50 : 30;
 		if (!value || value.length > max) {
 			return fail(400, {
-				message: `${field === 'name' ? 'Name' : 'Method'} is required and must be at most ${max} characters.`,
+				message:
+					field === 'name'
+						? `Название обязательно и не должно превышать ${max} символов.`
+						: `Способ применения обязателен и не должен превышать ${max} символов.`,
 				field,
 				values
 			});
@@ -54,7 +57,7 @@ export const actions = {
 		try {
 			await updateMedication(id, values);
 		} catch (err) {
-			const message = err instanceof AdminError ? err.message : 'Could not update the medication.';
+			const message = err instanceof AdminError ? err.message : 'Не удалось изменить препарат.';
 			return fail(400, { message, field, values });
 		}
 
@@ -64,12 +67,12 @@ export const actions = {
 	delete: async (event) => {
 		requireRole('admin', event);
 		const { id } = event.params;
-		if (!isValidUuid(id)) return fail(400, { message: 'Enter a valid UUID.' });
+		if (!isValidUuid(id)) return fail(400, { message: 'Введите корректный UUID.' });
 
 		try {
 			await deleteMedication(id);
 		} catch (err) {
-			const message = err instanceof AdminError ? err.message : 'Could not delete the medication.';
+			const message = err instanceof AdminError ? err.message : 'Не удалось удалить препарат.';
 			return fail(400, { message });
 		}
 

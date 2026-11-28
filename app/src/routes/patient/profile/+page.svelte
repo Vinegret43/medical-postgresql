@@ -10,7 +10,7 @@
 </script>
 
 <svelte:head>
-	<title>My profile</title>
+	<title>Мой профиль</title>
 </svelte:head>
 
 <div class="flex flex-col gap-4">
@@ -18,20 +18,20 @@
 		<Card.Root class="mx-auto w-full max-w-2xl">
 			<Card.Header>
 				<Card.Title>{data.patient.fullname}</Card.Title>
-				<Card.Description>Your personal information in the medical service.</Card.Description>
+				<Card.Description>Ваши личные данные в медицинском сервисе.</Card.Description>
 			</Card.Header>
 			<Card.Content>
 				<div class="grid gap-4 sm:grid-cols-2">
 					<div class="flex flex-col gap-1">
-						<span class="text-xs tracking-wide text-muted-foreground uppercase">OMS policy number</span>
+						<span class="text-xs tracking-wide text-muted-foreground uppercase">Номер полиса ОМС</span>
 						<span class="font-medium">{data.patient.oms}</span>
 					</div>
 					<div class="flex flex-col gap-1">
-						<span class="text-xs tracking-wide text-muted-foreground uppercase">Date of birth</span>
+						<span class="text-xs tracking-wide text-muted-foreground uppercase">Дата рождения</span>
 						<span class="font-medium">{formatDate(data.patient.birthdate)}</span>
 					</div>
 					<div class="flex flex-col gap-1 sm:col-span-2">
-						<span class="text-xs tracking-wide text-muted-foreground uppercase">Phone</span>
+						<span class="text-xs tracking-wide text-muted-foreground uppercase">Телефон</span>
 						<span class="font-medium">{data.patient.phone}</span>
 					</div>
 				</div>
@@ -40,7 +40,7 @@
 				<form method="POST" action="/logout">
 					<Button type="submit" variant="destructive">
 						<LogOutIcon data-icon="inline-start" />
-						Log out
+						Выйти
 					</Button>
 				</form>
 			</Card.Footer>
@@ -49,16 +49,16 @@
 		<Empty.Root>
 			<Empty.Header>
 				<Empty.Media variant="icon"><UserRoundIcon /></Empty.Media>
-				<Empty.Title>No profile record found</Empty.Title>
+				<Empty.Title>Запись профиля не найдена</Empty.Title>
 				<Empty.Description>
-					There is no patient record for OMS {data.oms}. Ask an administrator to add it.
+					Пациент с полисом ОМС {data.oms} не найден. Попросите администратора добавить его.
 				</Empty.Description>
 			</Empty.Header>
 			<Empty.Content>
 				<form method="POST" action="/logout">
 					<Button type="submit" variant="outline">
 						<LogOutIcon data-icon="inline-start" />
-						Log out
+						Выйти
 					</Button>
 				</form>
 			</Empty.Content>

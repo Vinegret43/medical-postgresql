@@ -50,7 +50,7 @@
 <div class="flex flex-col gap-4">
 	<Button href="/admin/procedures" variant="ghost" size="sm" class="self-start">
 		<ArrowLeftIcon data-icon="inline-start" />
-		Back to procedures
+		К процедурам
 	</Button>
 
 	{#if form?.message && !form?.field && !form?.values?.med_id}
@@ -60,7 +60,7 @@
 			{:else}
 				<ShieldAlertIcon />
 			{/if}
-			<Alert.Title>{form.success ? 'Done' : 'Could not save the change'}</Alert.Title>
+			<Alert.Title>{form.success ? 'Готово' : 'Не удалось сохранить изменение'}</Alert.Title>
 			<Alert.Description>{form.message}</Alert.Description>
 		</Alert.Root>
 	{/if}
@@ -69,15 +69,15 @@
 		<Card.Header>
 			<Card.Title>{data.procedure.proc_name}</Card.Title>
 			<Card.Description>
-				Procedure #{data.procedure.proc_id} · {formatDateTime(data.procedure.proc_time)}
+				Процедура №{data.procedure.proc_id} · {formatDateTime(data.procedure.proc_time)}
 			</Card.Description>
 			<Card.Action>
 				<div class="flex flex-wrap gap-2">
 					<ConfirmDelete
 						action="?/deleteProcedure"
-						label="Delete"
-						title="Delete this procedure?"
-						description="All medication applications attached to it will be removed."
+						label="Удалить"
+						title="Удалить эту процедуру?"
+						description="Все назначения препаратов будут удалены."
 					/>
 				</div>
 			</Card.Action>
@@ -85,7 +85,7 @@
 		<Card.Content>
 			<div class="grid gap-4 sm:grid-cols-2">
 				<div class="flex flex-col gap-1">
-					<span class="text-xs tracking-wide text-muted-foreground uppercase">Patient</span>
+					<span class="text-xs tracking-wide text-muted-foreground uppercase">Пациент</span>
 					<Button
 						href={`/admin/patients/${data.procedure.oms}`}
 						variant="link"
@@ -94,10 +94,10 @@
 					>
 						{data.procedure.patient_fullname}
 					</Button>
-					<span class="text-xs text-muted-foreground">OMS {data.procedure.oms} · immutable</span>
+					<span class="text-xs text-muted-foreground">ОМС {data.procedure.oms} · нельзя изменить</span>
 				</div>
 				<div class="flex flex-col gap-1">
-					<span class="text-xs tracking-wide text-muted-foreground uppercase">Doctor</span>
+					<span class="text-xs tracking-wide text-muted-foreground uppercase">Врач</span>
 					<Button
 						href={`/admin/doctors/${data.procedure.license}`}
 						variant="link"
@@ -107,11 +107,11 @@
 						{data.procedure.doctor_fullname}
 					</Button>
 					<span class="text-xs text-muted-foreground">
-						License {data.procedure.license} · immutable
+						Лицензия {data.procedure.license} · нельзя изменить
 					</span>
 				</div>
 				<InlineEdit
-					label="Procedure name"
+					label="Название процедуры"
 					name="proc_name"
 					value={data.procedure.proc_name}
 					maxlength="200"
@@ -119,7 +119,7 @@
 					error={fieldError('proc_name')}
 				/>
 				<InlineEdit
-					label="Procedure time (UTC)"
+					label="Время процедуры (UTC)"
 					name="proc_time"
 					type="datetime-local"
 					value={data.procedure.proc_time}
@@ -127,7 +127,7 @@
 					error={fieldError('proc_time')}
 				/>
 				<InlineEdit
-					label="Remarks"
+					label="Замечания"
 					name="remarks"
 					type="textarea"
 					value={data.procedure.remarks}
@@ -135,7 +135,7 @@
 					error={fieldError('remarks')}
 				/>
 				<InlineEdit
-					label="Recommendations"
+					label="Рекомендации"
 					name="recommendations"
 					type="textarea"
 					value={data.procedure.recommendations}
@@ -144,7 +144,7 @@
 				/>
 				{#if data.procedure.admin_login}
 					<div class="flex flex-col gap-1 sm:col-span-2">
-						<span class="text-xs tracking-wide text-muted-foreground uppercase">Last edited by</span>
+						<span class="text-xs tracking-wide text-muted-foreground uppercase">Последнее изменение</span>
 						<span class="font-medium">
 							{data.procedure.admin_login} · {formatDateTime(data.procedure.admin_edit_timestamp)}
 						</span>
@@ -156,16 +156,16 @@
 
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Add a medication</Card.Title>
+			<Card.Title>Добавить препарат</Card.Title>
 			<Card.Description>
-				Adding the same medication twice is rejected; edit the existing dosage instead.
+				Добавить один и тот же препарат повторно нельзя — измените существующую дозировку.
 			</Card.Description>
 		</Card.Header>
 		<Card.Content>
 			<form method="POST" action="?/addApplication" class="flex flex-col gap-3">
 				<Field.FieldGroup class="gap-3 sm:flex-row sm:items-end">
 					<Field.Field class="flex-1" data-invalid={Boolean(addError)}>
-						<Field.FieldLabel for="medication-picker">Medication</Field.FieldLabel>
+						<Field.FieldLabel for="medication-picker">Препарат</Field.FieldLabel>
 						<Popover.Root bind:open={medOpen}>
 							<Popover.Trigger>
 								{#snippet child({ props })}
@@ -181,17 +181,17 @@
 										{selectedMed
 											? selectedMed.name
 											: availableMedications.length > 0
-												? 'Select a medication'
-												: 'All medications applied'}
+												? 'Выберите препарат'
+												: 'Все препараты добавлены'}
 										<ChevronDownIcon />
 									</Button>
 								{/snippet}
 							</Popover.Trigger>
 							<Popover.Content class="w-[24rem] p-0">
 								<Command.Root disableInitialScroll>
-									<Command.Input placeholder="Search medications..." />
+									<Command.Input placeholder="Поиск препаратов..." />
 									<Command.List>
-										<Command.Empty>No available medications found.</Command.Empty>
+										<Command.Empty>Доступные препараты не найдены.</Command.Empty>
 										<Command.Group>
 											{#each availableMedications as medication (medication.id)}
 												<Command.Item
@@ -213,7 +213,7 @@
 						<input type="hidden" name="med_id" value={selectedMedId} />
 					</Field.Field>
 					<Field.Field>
-						<Field.FieldLabel for="new-dosage">Dosage</Field.FieldLabel>
+						<Field.FieldLabel for="new-dosage">Дозировка</Field.FieldLabel>
 						<Input
 							id="new-dosage"
 							name="dosage"
@@ -221,12 +221,12 @@
 							min="0"
 							step="any"
 							bind:value={selectedDosage}
-							placeholder="e.g. 0.5"
+							placeholder="например, 0.5"
 						/>
 					</Field.Field>
 					<Button type="submit" disabled={!selectedMed}>
 						<PlusIcon data-icon="inline-start" />
-						Add medication
+						Добавить препарат
 					</Button>
 				</Field.FieldGroup>
 				{#if addError}
@@ -240,10 +240,10 @@
 
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Applied medications</Card.Title>
-			<Card.Description>Dosages can be edited inline.</Card.Description>
+			<Card.Title>Применённые препараты</Card.Title>
+			<Card.Description>Дозировку можно изменить прямо в таблице.</Card.Description>
 			<Card.Action>
-				<Badge variant="secondary">{applications.length} total</Badge>
+				<Badge variant="secondary">Всего: {applications.length}</Badge>
 			</Card.Action>
 		</Card.Header>
 		<Card.Content>
@@ -251,19 +251,19 @@
 				<Empty.Root>
 					<Empty.Header>
 						<Empty.Media variant="icon"><PillIcon /></Empty.Media>
-						<Empty.Title>No medications applied</Empty.Title>
-						<Empty.Description>Add one above to attach it to this procedure.</Empty.Description>
+						<Empty.Title>Препараты не применены</Empty.Title>
+						<Empty.Description>Добавьте препарат выше, чтобы привязать его к процедуре.</Empty.Description>
 					</Empty.Header>
 				</Empty.Root>
 			{:else}
 				<Table.Root>
 					<Table.Header>
 						<Table.Row>
-							<Table.Head>Medicine</Table.Head>
-							<Table.Head>Method</Table.Head>
-							<Table.Head class="w-48">Dosage</Table.Head>
-							<Table.Head>Mark ID</Table.Head>
-							<Table.Head class="text-right">Remove</Table.Head>
+							<Table.Head>Препарат</Table.Head>
+							<Table.Head>Способ применения</Table.Head>
+							<Table.Head class="w-48">Дозировка</Table.Head>
+							<Table.Head>Идентификатор знака</Table.Head>
+							<Table.Head class="text-right">Убрать</Table.Head>
 						</Table.Row>
 					</Table.Header>
 					<Table.Body>
@@ -273,7 +273,7 @@
 								<Table.Cell>{application.med_method}</Table.Cell>
 								<Table.Cell>
 									<InlineEdit
-										label="Dosage"
+										label="Дозировка"
 										name="dosage"
 										inputName="dosage"
 										type="number"
@@ -292,9 +292,9 @@
 									<ConfirmDelete
 										action="?/deleteApplication"
 										hidden={{ med_id: application.med_id }}
-										label="Remove"
-										title="Remove this medication?"
-										description="The application will be detached from this procedure."
+										label="Убрать"
+										title="Убрать этот препарат?"
+										description="Назначение будет отвязано от этой процедуры."
 									/>
 								</Table.Cell>
 							</Table.Row>

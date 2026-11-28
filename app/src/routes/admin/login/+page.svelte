@@ -10,19 +10,19 @@
 	let { form } = $props();
 </script>
 
-<svelte:head><title>Admin login</title></svelte:head>
+<svelte:head><title>Вход для администратора</title></svelte:head>
 
 <main class="flex min-h-screen items-center justify-center bg-background p-4 text-foreground">
 	<form method="POST" use:enhance class="w-full max-w-md">
 		<Card.Root>
 			<Card.Header class="text-center">
-				<Card.Title>Admin login</Card.Title>
-				<Card.Description>Sign in with your administrator credentials.</Card.Description>
+				<Card.Title>Вход для администратора</Card.Title>
+				<Card.Description>Войдите, используя логин и пароль администратора.</Card.Description>
 			</Card.Header>
 			<Card.Content>
 				<Field.FieldGroup class="gap-4">
 					<Field.Field>
-						<Field.FieldLabel for="identifier">Login</Field.FieldLabel>
+						<Field.FieldLabel for="identifier">Логин</Field.FieldLabel>
 						<Input
 							id="identifier"
 							name="identifier"
@@ -31,7 +31,7 @@
 						/>
 					</Field.Field>
 					<Field.Field>
-						<Field.FieldLabel for="secret">Password</Field.FieldLabel>
+						<Field.FieldLabel for="secret">Пароль</Field.FieldLabel>
 						<Input
 							id="secret"
 							name="secret"
@@ -45,14 +45,14 @@
 				{#if form?.message}
 					<Alert.Root variant="destructive" class="mt-4">
 						<ShieldAlertIcon />
-						<Alert.Title>Login failed</Alert.Title>
+						<Alert.Title>Ошибка входа</Alert.Title>
 						<Alert.Description>{form.message}</Alert.Description>
 					</Alert.Root>
 				{/if}
 			</Card.Content>
 			<Card.Footer class="flex-col gap-3">
-				<Button type="submit" class="w-full">Log in</Button>
-				<Button href="/" variant="ghost" size="sm">Back to role selection</Button>
+				<Button type="submit" class="w-full">Войти</Button>
+				<Button href="/" variant="ghost" size="sm">К выбору роли</Button>
 			</Card.Footer>
 		</Card.Root>
 	</form>

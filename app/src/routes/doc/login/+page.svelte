@@ -12,19 +12,19 @@
 	let { form } = $props();
 </script>
 
-<svelte:head><title>Doctor login</title></svelte:head>
+<svelte:head><title>Вход для врача</title></svelte:head>
 
 <main class="flex min-h-screen items-center justify-center bg-background p-4 text-foreground">
 	<form method="POST" use:enhance class="w-full max-w-md">
 		<Card.Root>
 			<Card.Header class="text-center">
-				<Card.Title>Doctor login</Card.Title>
-				<Card.Description>Sign in with your license number and one-time code.</Card.Description>
+				<Card.Title>Вход для врача</Card.Title>
+				<Card.Description>Войдите, используя номер лицензии и одноразовый код.</Card.Description>
 			</Card.Header>
 			<Card.Content>
 				<Field.FieldGroup class="gap-4">
 					<Field.Field>
-						<Field.FieldLabel for="identifier">License number</Field.FieldLabel>
+						<Field.FieldLabel for="identifier">Номер лицензии</Field.FieldLabel>
 						<Input
 							id="identifier"
 							name="identifier"
@@ -34,7 +34,7 @@
 						/>
 					</Field.Field>
 					<Field.Field class="w-fit">
-						<Field.FieldLabel for="secret">TOTP code</Field.FieldLabel>
+						<Field.FieldLabel for="secret">Код TOTP</Field.FieldLabel>
 						<InputOTP.Root
 							inputId="secret"
 							name="secret"
@@ -61,7 +61,7 @@
 							{/snippet}
 						</InputOTP.Root>
 						<Field.FieldDescription>
-							Enter the 6-digit code from your authenticator app.
+							Введите 6-значный код из приложения-аутентификатора.
 						</Field.FieldDescription>
 					</Field.Field>
 				</Field.FieldGroup>
@@ -69,14 +69,14 @@
 				{#if form?.message}
 					<Alert.Root variant="destructive" class="mt-4">
 						<ShieldAlertIcon />
-						<Alert.Title>Login failed</Alert.Title>
+						<Alert.Title>Ошибка входа</Alert.Title>
 						<Alert.Description>{form.message}</Alert.Description>
 					</Alert.Root>
 				{/if}
 			</Card.Content>
 			<Card.Footer class="flex-col gap-3">
-				<Button type="submit" class="w-full">Log in</Button>
-				<Button href="/" variant="ghost" size="sm">Back to role selection</Button>
+				<Button type="submit" class="w-full">Войти</Button>
+				<Button href="/" variant="ghost" size="sm">К выбору роли</Button>
 			</Card.Footer>
 		</Card.Root>
 	</form>

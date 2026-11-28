@@ -30,7 +30,7 @@
 <div class="flex flex-col gap-4">
 	<Button href="/admin/patients" variant="ghost" size="sm" class="self-start">
 		<ArrowLeftIcon data-icon="inline-start" />
-		Back to patients
+		К пациентам
 	</Button>
 
 	{#if form?.message && !form?.field}
@@ -38,7 +38,7 @@
 			{#if !form?.success}
 				<ShieldAlertIcon />
 			{/if}
-			<Alert.Title>{form?.success ? 'Secret regenerated' : 'Could not save the change'}</Alert.Title>
+			<Alert.Title>{form?.success ? 'Секрет обновлён' : 'Не удалось сохранить изменение'}</Alert.Title>
 			<Alert.Description>{form.message}</Alert.Description>
 		</Alert.Root>
 	{/if}
@@ -46,25 +46,25 @@
 	<Card.Root>
 		<Card.Header>
 			<Card.Title>{data.patient.fullname}</Card.Title>
-			<Card.Description>Patient record and visit history.</Card.Description>
+			<Card.Description>Данные пациента и история посещений.</Card.Description>
 			<Card.Action>
 				<ConfirmDelete
 					hidden={{ oms: data.patient.oms }}
-					label="Delete"
-					title="Delete this patient?"
-					description="Patients with procedures cannot be deleted until those procedures are removed."
+					label="Удалить"
+					title="Удалить этого пациента?"
+					description="Пациента с процедурами нельзя удалить, пока процедуры не удалены."
 				/>
 			</Card.Action>
 		</Card.Header>
 		<Card.Content>
 			<div class="grid gap-4 sm:grid-cols-2">
 				<div class="flex flex-col gap-1">
-					<span class="text-xs tracking-wide text-muted-foreground uppercase">OMS</span>
+					<span class="text-xs tracking-wide text-muted-foreground uppercase">ОМС</span>
 					<span class="font-mono font-medium">{data.patient.oms}</span>
-					<span class="text-xs text-muted-foreground">This identifier is immutable.</span>
+					<span class="text-xs text-muted-foreground">Этот идентификатор нельзя изменить.</span>
 				</div>
 				<InlineEdit
-					label="Full name"
+					label="ФИО"
 					name="fullname"
 					value={data.patient.fullname}
 					maxlength="70"
@@ -72,7 +72,7 @@
 					error={fieldError('fullname')}
 				/>
 				<InlineEdit
-					label="Date of birth"
+					label="Дата рождения"
 					name="birthdate"
 					type="date"
 					value={data.patient.birthdate}
@@ -80,7 +80,7 @@
 					error={fieldError('birthdate')}
 				/>
 				<InlineEdit
-					label="Phone"
+					label="Телефон"
 					name="phone"
 					value={data.patient.phone}
 					required
@@ -94,10 +94,10 @@
 
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Procedures</Card.Title>
-			<Card.Description>All procedures recorded for this patient.</Card.Description>
+			<Card.Title>Процедуры</Card.Title>
+			<Card.Description>Все процедуры, записанные для этого пациента.</Card.Description>
 			<Card.Action>
-				<Badge variant="secondary">{procedures.length} total</Badge>
+				<Badge variant="secondary">Всего: {procedures.length}</Badge>
 			</Card.Action>
 		</Card.Header>
 		<Card.Content>
@@ -105,18 +105,18 @@
 				<Empty.Root>
 					<Empty.Header>
 						<Empty.Media variant="icon"><ClipboardListIcon /></Empty.Media>
-						<Empty.Title>No procedures yet</Empty.Title>
-						<Empty.Description>This patient has no recorded procedures.</Empty.Description>
+						<Empty.Title>Процедур пока нет</Empty.Title>
+						<Empty.Description>У этого пациента нет записанных процедур.</Empty.Description>
 					</Empty.Header>
 				</Empty.Root>
 			{:else}
 				<Table.Root>
 					<Table.Header>
 						<Table.Row>
-							<Table.Head>Date</Table.Head>
-							<Table.Head>Doctor</Table.Head>
-							<Table.Head>Procedure</Table.Head>
-							<Table.Head class="text-right">Details</Table.Head>
+							<Table.Head>Дата</Table.Head>
+							<Table.Head>Врач</Table.Head>
+							<Table.Head>Процедура</Table.Head>
+							<Table.Head class="text-right">Подробнее</Table.Head>
 						</Table.Row>
 					</Table.Header>
 					<Table.Body>
@@ -131,7 +131,7 @@
 										variant="link"
 										size="sm"
 									>
-										View
+										Просмотр
 									</Button>
 								</Table.Cell>
 							</Table.Row>

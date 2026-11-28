@@ -7,7 +7,7 @@
 
 	let { data, children } = $props();
 
-	let patientName = $derived(data.patient?.fullname ?? 'Patient');
+	let patientName = $derived(data.patient?.fullname ?? 'Пациент');
 	let initials = $derived(
 		patientName
 			.split(/\s+/)
@@ -25,7 +25,7 @@
 					<HeartPulseIcon class="size-5 text-primary" />
 					<Button href="/patient" variant="ghost" size="sm">
 						<HouseIcon data-icon="inline-start" />
-						Home
+						Главная
 					</Button>
 					<span class="text-muted-foreground">/</span>
 					<span class="text-sm font-medium">{patientName}</span>
@@ -35,7 +35,7 @@
 					<Avatar.Root class="size-6">
 						<Avatar.Fallback>{initials}</Avatar.Fallback>
 					</Avatar.Root>
-					Profile
+					Профиль
 				</Button>
 			</div>
 		</header>

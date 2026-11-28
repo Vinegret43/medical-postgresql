@@ -133,11 +133,17 @@ export async function loginAction(role, { request, cookies, url }) {
 	const secret = String(data.get('secret') ?? '');
 
 	const user = await authenticate(role, identifier, secret);
-	if (!user) return fail(400, { message: 'Invalid credentials' });
+	if (!user) return fail(400, { message: 'Неверные учётные данные' });
 
 	await createSession(user, cookies);
 	redirect(303, safeRedirectTarget(url.searchParams.get('redirectTo'), role));
 }
+
+const ROLE_NAMES = {
+	admin: 'администратора',
+	doctor: 'врача',
+	patient: 'пациента'
+};
 
 /** Shared guard for the handle hook and for per-page server loads. */
 export function requireRole(role, { locals, url }) {
@@ -147,7 +153,7 @@ export function requireRole(role, { locals, url }) {
 	}
 
 	if (locals.user.role !== role) {
-		error(403, `This section is only available to ${role} users`);
+		error(403, `Этот раздел доступен только пользователям с ролью ${ROLE_NAMES[role] ?? role}`);
 	}
 
 	return locals.user;

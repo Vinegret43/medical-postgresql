@@ -36,36 +36,36 @@
 </script>
 
 <svelte:head>
-	<title>Patients</title>
+	<title>Пациенты</title>
 </svelte:head>
 
 <div class="flex flex-col gap-4">
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Find a patient</Card.Title>
-			<Card.Description>Search by OMS policy number or name.</Card.Description>
+			<Card.Title>Найти пациента</Card.Title>
+			<Card.Description>Поиск по номеру полиса ОМС или ФИО.</Card.Description>
 			<Card.Action>
 				<Button href="/admin/patients/new" size="sm">
 					<PlusIcon data-icon="inline-start" />
-					New patient
+					Новый пациент
 				</Button>
 			</Card.Action>
 		</Card.Header>
 		<Card.Content>
 			<form method="GET" action="/admin/patients">
 				<Field.Field>
-					<Field.FieldLabel for="q">OMS or name</Field.FieldLabel>
-					<ButtonGroup.Root class="w-full" aria-label="Patient search">
+					<Field.FieldLabel for="q">ОМС или ФИО</Field.FieldLabel>
+					<ButtonGroup.Root class="w-full" aria-label="Поиск пациента">
 						<Input
 							id="q"
 							name="q"
 							bind:value={q}
 							oninput={scheduleSearch}
-							placeholder="e.g. Ivan or 2000000001"
+							placeholder="например, Иванов или 2000000001"
 						/>
 						<Button type="submit" variant="outline">
 							<SearchIcon data-icon="inline-start" />
-							Search
+							Найти
 						</Button>
 					</ButtonGroup.Root>
 				</Field.Field>
@@ -75,10 +75,10 @@
 
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Patients</Card.Title>
-			<Card.Description>Open a record to edit it or view its sign-in code.</Card.Description>
+			<Card.Title>Пациенты</Card.Title>
+			<Card.Description>Откройте запись, чтобы изменить её или посмотреть код для входа.</Card.Description>
 			<Card.Action>
-				<Badge variant="secondary">{patients.length} shown</Badge>
+				<Badge variant="secondary">Показано: {patients.length}</Badge>
 			</Card.Action>
 		</Card.Header>
 		<Card.Content>
@@ -86,19 +86,19 @@
 				<Empty.Root>
 					<Empty.Header>
 						<Empty.Media variant="icon"><UserRoundIcon /></Empty.Media>
-						<Empty.Title>No patients found</Empty.Title>
-						<Empty.Description>Try a different OMS number or name.</Empty.Description>
+						<Empty.Title>Пациенты не найдены</Empty.Title>
+						<Empty.Description>Попробуйте другой номер ОМС или ФИО.</Empty.Description>
 					</Empty.Header>
 				</Empty.Root>
 			{:else}
 				<Table.Root>
 					<Table.Header>
 						<Table.Row>
-							<Table.Head>OMS</Table.Head>
-							<Table.Head>Name</Table.Head>
-							<Table.Head>Date of birth</Table.Head>
-							<Table.Head>Phone</Table.Head>
-							<Table.Head class="text-right">Actions</Table.Head>
+							<Table.Head>ОМС</Table.Head>
+							<Table.Head>ФИО</Table.Head>
+							<Table.Head>Дата рождения</Table.Head>
+							<Table.Head>Телефон</Table.Head>
+							<Table.Head class="text-right">Действия</Table.Head>
 						</Table.Row>
 					</Table.Header>
 					<Table.Body>
@@ -110,7 +110,7 @@
 								<Table.Cell>{patient.phone}</Table.Cell>
 								<Table.Cell class="text-right">
 									<Button href={`/admin/patients/${patient.oms}`} variant="link" size="sm">
-										Manage
+										Управлять
 									</Button>
 								</Table.Cell>
 							</Table.Row>

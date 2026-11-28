@@ -6,7 +6,7 @@ export async function load(event) {
 	const user = requireRole('patient', event);
 	const { id } = event.params;
 
-	if (!/^\d{1,19}$/.test(id)) error(400, 'Invalid procedure id');
+	if (!/^\d{1,19}$/.test(id)) error(400, 'Некорректный идентификатор процедуры');
 
 	const oms = user.subjectId;
 
@@ -34,7 +34,7 @@ export async function load(event) {
 		);
 		procedure = procedures.rows[0] ?? null;
 	} catch (err) {
-		if (err?.code === 'P0002') error(404, 'Procedure not found');
+		if (err?.code === 'P0002') error(404, 'Процедура не найдена');
 		throw err;
 	}
 

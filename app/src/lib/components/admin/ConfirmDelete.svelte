@@ -7,10 +7,10 @@
 	let {
 		action = '?/delete',
 		hidden = {},
-		label = 'Delete',
-		confirmLabel = 'Delete',
-		title = 'Delete this record?',
-		description = 'This action cannot be undone.'
+		label = 'Удалить',
+		confirmLabel = 'Удалить',
+		title = 'Удалить эту запись?',
+		description = 'Это действие нельзя отменить.'
 	} = $props();
 
 	let open = $state(false);
@@ -34,7 +34,7 @@
 				<AlertDialog.Description>{description}</AlertDialog.Description>
 			</AlertDialog.Header>
 			<AlertDialog.Footer>
-				<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+				<AlertDialog.Cancel>Отмена</AlertDialog.Cancel>
 				<form
 					method="POST"
 					{action}

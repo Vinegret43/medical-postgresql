@@ -97,7 +97,7 @@
 						localError = null;
 						editing = false;
 					} else if (result.type === 'failure') {
-						localError = String(result.data?.message ?? 'Could not save the change.');
+						localError = String(result.data?.message ?? 'Не удалось сохранить изменение.');
 					}
 					await update({ reset: result.type === 'success' });
 				};
@@ -141,10 +141,10 @@
 			</Field.Field>
 
 			<div class="flex flex-wrap gap-2">
-				<Button type="submit" size="sm" disabled={busy}>Save</Button>
+				<Button type="submit" size="sm" disabled={busy}>Сохранить</Button>
 				<Button type="button" size="sm" variant="ghost" onclick={cancel} disabled={busy}>
 					<XIcon data-icon="inline-start" />
-					Cancel
+					Отмена
 				</Button>
 			</div>
 		</form>
@@ -158,7 +158,7 @@
 				type="button"
 				size="icon-sm"
 				variant="ghost"
-				aria-label={`Edit ${label}`}
+				aria-label={`Изменить ${label}`}
 				onclick={() => {
 					localError = null;
 					editing = true;

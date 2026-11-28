@@ -16,7 +16,7 @@
 </script>
 
 <svelte:head>
-	<title>Procedures</title>
+	<title>Процедуры</title>
 </svelte:head>
 
 <div class="flex flex-col gap-4">
@@ -27,19 +27,19 @@
 			{:else}
 				<ShieldAlertIcon />
 			{/if}
-			<Alert.Title>{form.success ? 'Done' : 'Could not delete procedure'}</Alert.Title>
+			<Alert.Title>{form.success ? 'Готово' : 'Не удалось удалить процедуру'}</Alert.Title>
 			<Alert.Description>{form.message}</Alert.Description>
 		</Alert.Root>
 	{/if}
 
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Procedures</Card.Title>
+			<Card.Title>Процедуры</Card.Title>
 			<Card.Description>
-				Edit procedure notes and applications. Patient and doctor assignments are fixed.
+				Изменение замечаний и назначений процедуры. Пациент и врач не меняются.
 			</Card.Description>
 			<Card.Action>
-				<Badge variant="secondary">{procedures.length} total</Badge>
+				<Badge variant="secondary">Всего: {procedures.length}</Badge>
 			</Card.Action>
 		</Card.Header>
 		<Card.Content>
@@ -47,20 +47,20 @@
 				<Empty.Root>
 					<Empty.Header>
 						<Empty.Media variant="icon"><ActivityIcon /></Empty.Media>
-						<Empty.Title>No procedures yet</Empty.Title>
-						<Empty.Description>Procedures are created by doctors.</Empty.Description>
+						<Empty.Title>Процедур пока нет</Empty.Title>
+						<Empty.Description>Процедуры создают врачи.</Empty.Description>
 					</Empty.Header>
 				</Empty.Root>
 			{:else}
 				<Table.Root>
 					<Table.Header>
 						<Table.Row>
-							<Table.Head>Date</Table.Head>
-							<Table.Head>Patient</Table.Head>
-							<Table.Head>Doctor</Table.Head>
-							<Table.Head>Procedure</Table.Head>
-							<Table.Head>Last edited</Table.Head>
-							<Table.Head class="text-right">Actions</Table.Head>
+							<Table.Head>Дата</Table.Head>
+							<Table.Head>Пациент</Table.Head>
+							<Table.Head>Врач</Table.Head>
+							<Table.Head>Процедура</Table.Head>
+							<Table.Head>Последнее изменение</Table.Head>
+							<Table.Head class="text-right">Действия</Table.Head>
 						</Table.Row>
 					</Table.Header>
 					<Table.Body>
@@ -103,14 +103,14 @@
 											variant="link"
 											size="sm"
 										>
-											Manage
+											Управлять
 										</Button>
 										<ConfirmDelete
 											action="?/delete"
 											hidden={{ proc_id: procedure.proc_id }}
-											label="Delete"
-											title="Delete this procedure?"
-											description="Its medication applications will be removed as well."
+											label="Удалить"
+											title="Удалить эту процедуру?"
+											description="Назначения препаратов также будут удалены."
 										/>
 									</div>
 								</Table.Cell>

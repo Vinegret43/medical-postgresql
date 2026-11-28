@@ -3,7 +3,7 @@
 </script>
 
 <svelte:head>
-	<title>{page.status} · {page.error?.message ?? 'Something went wrong'}</title>
+	<title>{page.status} · {page.error?.message ?? 'Что-то пошло не так'}</title>
 </svelte:head>
 
 <!--
@@ -19,16 +19,16 @@
 	>
 		<div class="text-5xl leading-none font-light text-primary">{page.status}</div>
 		<h1 class="mt-3 text-xl font-semibold">
-			{page.error?.message ?? 'Something went wrong'}
+			{page.error?.message ?? 'Что-то пошло не так'}
 		</h1>
 		<p class="mt-2 text-sm text-muted-foreground">
-			You can return to the home page and try again.
+			Вернитесь на главную страницу и попробуйте снова.
 		</p>
 		<a
 			href="/"
 			class="mt-6 inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80"
 		>
-			Back to home
+			На главную
 		</a>
 	</section>
 </main>

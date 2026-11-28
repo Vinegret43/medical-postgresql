@@ -36,36 +36,36 @@
 </script>
 
 <svelte:head>
-	<title>Doctors</title>
+	<title>Врачи</title>
 </svelte:head>
 
 <div class="flex flex-col gap-4">
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Find a doctor</Card.Title>
-			<Card.Description>Search by license number or name.</Card.Description>
+			<Card.Title>Найти врача</Card.Title>
+			<Card.Description>Поиск по номеру лицензии или ФИО.</Card.Description>
 			<Card.Action>
 				<Button href="/admin/doctors/new" size="sm">
 					<PlusIcon data-icon="inline-start" />
-					New doctor
+					Новый врач
 				</Button>
 			</Card.Action>
 		</Card.Header>
 		<Card.Content>
 			<form method="GET" action="/admin/doctors">
 				<Field.Field>
-					<Field.FieldLabel for="q">License or name</Field.FieldLabel>
-					<ButtonGroup.Root class="w-full" aria-label="Doctor search">
+					<Field.FieldLabel for="q">Лицензия или ФИО</Field.FieldLabel>
+					<ButtonGroup.Root class="w-full" aria-label="Поиск врача">
 						<Input
 							id="q"
 							name="q"
 							bind:value={q}
 							oninput={scheduleSearch}
-							placeholder="e.g. Maria or 1000000001"
+							placeholder="например, Мария или 1000000001"
 						/>
 						<Button type="submit" variant="outline">
 							<SearchIcon data-icon="inline-start" />
-							Search
+							Найти
 						</Button>
 					</ButtonGroup.Root>
 				</Field.Field>
@@ -75,10 +75,10 @@
 
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Doctors</Card.Title>
-			<Card.Description>Open a record to edit it or view its sign-in code.</Card.Description>
+			<Card.Title>Врачи</Card.Title>
+			<Card.Description>Откройте запись, чтобы изменить её или посмотреть код для входа.</Card.Description>
 			<Card.Action>
-				<Badge variant="secondary">{doctors.length} shown</Badge>
+				<Badge variant="secondary">Показано: {doctors.length}</Badge>
 			</Card.Action>
 		</Card.Header>
 		<Card.Content>
@@ -86,19 +86,19 @@
 				<Empty.Root>
 					<Empty.Header>
 						<Empty.Media variant="icon"><StethoscopeIcon /></Empty.Media>
-						<Empty.Title>No doctors found</Empty.Title>
-						<Empty.Description>Try a different license number or name.</Empty.Description>
+						<Empty.Title>Врачи не найдены</Empty.Title>
+						<Empty.Description>Попробуйте другой номер лицензии или ФИО.</Empty.Description>
 					</Empty.Header>
 				</Empty.Root>
 			{:else}
 				<Table.Root>
 					<Table.Header>
 						<Table.Row>
-							<Table.Head>License</Table.Head>
-							<Table.Head>Name</Table.Head>
-							<Table.Head>Date of birth</Table.Head>
-							<Table.Head>Phone</Table.Head>
-							<Table.Head class="text-right">Actions</Table.Head>
+							<Table.Head>Лицензия</Table.Head>
+							<Table.Head>ФИО</Table.Head>
+							<Table.Head>Дата рождения</Table.Head>
+							<Table.Head>Телефон</Table.Head>
+							<Table.Head class="text-right">Действия</Table.Head>
 						</Table.Row>
 					</Table.Header>
 					<Table.Body>
@@ -110,7 +110,7 @@
 								<Table.Cell>{doctor.phone}</Table.Cell>
 								<Table.Cell class="text-right">
 									<Button href={`/admin/doctors/${doctor.license}`} variant="link" size="sm">
-										Manage
+										Управлять
 									</Button>
 								</Table.Cell>
 							</Table.Row>

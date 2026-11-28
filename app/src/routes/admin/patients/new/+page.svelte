@@ -11,19 +11,19 @@
 </script>
 
 <svelte:head>
-	<title>New patient</title>
+	<title>Новый пациент</title>
 </svelte:head>
 
 <div class="flex flex-col gap-4">
 	<Button href="/admin/patients" variant="ghost" size="sm" class="self-start">
 		<ArrowLeftIcon data-icon="inline-start" />
-		Back to patients
+		К пациентам
 	</Button>
 
 	{#if form?.message}
 		<Alert.Root variant="destructive">
 			<ShieldAlertIcon />
-			<Alert.Title>Could not create patient</Alert.Title>
+			<Alert.Title>Не удалось создать пациента</Alert.Title>
 			<Alert.Description>{form.message}</Alert.Description>
 		</Alert.Root>
 	{/if}
@@ -31,16 +31,15 @@
 	<form method="POST" class="flex flex-col gap-4">
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>New patient</Card.Title>
+				<Card.Title>Новый пациент</Card.Title>
 				<Card.Description>
-					A sign-in code is generated automatically. You can hand it to the patient from the
-					record page.
+					Код для входа создаётся автоматически. Вы можете передать его пациенту со страницы записи.
 				</Card.Description>
 			</Card.Header>
 			<Card.Content>
 				<Field.FieldGroup>
 					<Field.Field>
-						<Field.FieldLabel for="oms">OMS policy number</Field.FieldLabel>
+						<Field.FieldLabel for="oms">Номер полиса ОМС</Field.FieldLabel>
 						<Input
 							id="oms"
 							name="oms"
@@ -49,10 +48,10 @@
 							placeholder="2000000001"
 							required
 						/>
-						<Field.FieldDescription>This identifier cannot be changed later.</Field.FieldDescription>
+						<Field.FieldDescription>Этот идентификатор нельзя изменить позже.</Field.FieldDescription>
 					</Field.Field>
 					<Field.Field>
-						<Field.FieldLabel for="fullname">Full name</Field.FieldLabel>
+						<Field.FieldLabel for="fullname">ФИО</Field.FieldLabel>
 						<Input
 							id="fullname"
 							name="fullname"
@@ -62,7 +61,7 @@
 						/>
 					</Field.Field>
 					<Field.Field>
-						<Field.FieldLabel for="birthdate">Date of birth</Field.FieldLabel>
+						<Field.FieldLabel for="birthdate">Дата рождения</Field.FieldLabel>
 						<Input
 							id="birthdate"
 							name="birthdate"
@@ -72,7 +71,7 @@
 						/>
 					</Field.Field>
 					<Field.Field>
-						<Field.FieldLabel for="phone">Phone</Field.FieldLabel>
+						<Field.FieldLabel for="phone">Телефон</Field.FieldLabel>
 						<Input
 							id="phone"
 							name="phone"
@@ -84,8 +83,8 @@
 				</Field.FieldGroup>
 			</Card.Content>
 			<Card.Footer class="justify-between">
-				<Button href="/admin/patients" variant="ghost">Cancel</Button>
-				<Button type="submit">Create patient</Button>
+				<Button href="/admin/patients" variant="ghost">Отмена</Button>
+				<Button type="submit">Создать пациента</Button>
 			</Card.Footer>
 		</Card.Root>
 	</form>

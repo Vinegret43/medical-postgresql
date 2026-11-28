@@ -10,42 +10,42 @@
 	const sections = [
 		{
 			href: '/admin/patients',
-			title: 'Patients',
-			description: 'Add, edit, and remove patient records and their sign-in codes.',
+			title: 'Пациенты',
+			description: 'Добавление, изменение и удаление данных пациентов и их кодов для входа.',
 			icon: UserRoundIcon
 		},
 		{
 			href: '/admin/doctors',
-			title: 'Doctors',
-			description: 'Add, edit, and remove doctor records and their sign-in codes.',
+			title: 'Врачи',
+			description: 'Добавление, изменение и удаление данных врачей и их кодов для входа.',
 			icon: StethoscopeIcon
 		},
 		{
 			href: '/admin/meds',
-			title: 'Medications',
-			description: 'Maintain the medication catalog and its manual mark IDs.',
+			title: 'Лекарства',
+			description: 'Ведение каталога лекарств и идентификаторов «честного знака».',
 			icon: PillIcon
 		},
 		{
 			href: '/admin/procedures',
-			title: 'Procedures',
-			description: 'Edit procedure notes and manage the medications applied to them.',
+			title: 'Процедуры',
+			description: 'Изменение замечаний к процедурам и назначенных препаратов.',
 			icon: ActivityIcon
 		}
 	];
 </script>
 
 <svelte:head>
-	<title>Administration</title>
+	<title>Администрирование</title>
 </svelte:head>
 
 <div class="flex flex-col gap-4">
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Administration</Card.Title>
-			<Card.Description>Choose a section to manage.</Card.Description>
+			<Card.Title>Администрирование</Card.Title>
+			<Card.Description>Выберите раздел для управления.</Card.Description>
 			<Card.Action>
-				<Badge variant="secondary">Admin</Badge>
+				<Badge variant="secondary">Администратор</Badge>
 			</Card.Action>
 		</Card.Header>
 	</Card.Root>
@@ -59,7 +59,7 @@
 					<Card.Description>{section.description}</Card.Description>
 				</Card.Header>
 				<Card.Footer>
-					<Button href={section.href} variant="outline">Open {section.title.toLowerCase()}</Button>
+					<Button href={section.href} variant="outline">Открыть раздел</Button>
 				</Card.Footer>
 			</Card.Root>
 		{/each}

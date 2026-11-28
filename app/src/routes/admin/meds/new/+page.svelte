@@ -11,19 +11,19 @@
 </script>
 
 <svelte:head>
-	<title>New medication</title>
+	<title>Новый препарат</title>
 </svelte:head>
 
 <div class="flex flex-col gap-4">
 	<Button href="/admin/meds" variant="ghost" size="sm" class="self-start">
 		<ArrowLeftIcon data-icon="inline-start" />
-		Back to medications
+		К препаратам
 	</Button>
 
 	{#if form?.message}
 		<Alert.Root variant="destructive">
 			<ShieldAlertIcon />
-			<Alert.Title>Could not create medication</Alert.Title>
+			<Alert.Title>Не удалось создать препарат</Alert.Title>
 			<Alert.Description>{form.message}</Alert.Description>
 		</Alert.Root>
 	{/if}
@@ -31,15 +31,15 @@
 	<form method="POST" class="flex flex-col gap-4">
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>New medication</Card.Title>
+				<Card.Title>Новый препарат</Card.Title>
 				<Card.Description>
-					The mark ID is entered manually and cannot be changed later.
+					Идентификатор «честного знака» вводится вручную и не может быть изменён позже.
 				</Card.Description>
 			</Card.Header>
 			<Card.Content>
 				<Field.FieldGroup>
 					<Field.Field>
-						<Field.FieldLabel for="id">Mark ID (UUID)</Field.FieldLabel>
+						<Field.FieldLabel for="id">Идентификатор «честного знака» (UUID)</Field.FieldLabel>
 						<Input
 							id="id"
 							name="id"
@@ -49,11 +49,11 @@
 						/>
 					</Field.Field>
 					<Field.Field>
-						<Field.FieldLabel for="name">Name</Field.FieldLabel>
+						<Field.FieldLabel for="name">Название</Field.FieldLabel>
 						<Input id="name" name="name" value={form?.values?.name ?? ''} maxlength="50" required />
 					</Field.Field>
 					<Field.Field>
-						<Field.FieldLabel for="method">Method</Field.FieldLabel>
+						<Field.FieldLabel for="method">Способ применения</Field.FieldLabel>
 						<Input
 							id="method"
 							name="method"
@@ -65,8 +65,8 @@
 				</Field.FieldGroup>
 			</Card.Content>
 			<Card.Footer class="justify-between">
-				<Button href="/admin/meds" variant="ghost">Cancel</Button>
-				<Button type="submit">Create medication</Button>
+				<Button href="/admin/meds" variant="ghost">Отмена</Button>
+				<Button type="submit">Создать препарат</Button>
 			</Card.Footer>
 		</Card.Root>
 	</form>

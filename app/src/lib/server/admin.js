@@ -21,32 +21,32 @@ function codeOf(error) {
 	return error?.code ?? error?.parent?.code ?? error?.original?.code ?? null;
 }
 
-export function toAdminError(error, fallback = 'Could not save the change.') {
+export function toAdminError(error, fallback = 'Не удалось сохранить изменение.') {
 	if (error instanceof AdminError) return error;
 
 	switch (codeOf(error)) {
 		case '23505':
-			return new AdminError('That OMS, license, or UUID already exists.', '23505', error);
+			return new AdminError('Запись с таким ОМС, лицензией или UUID уже существует.', '23505', error);
 		case '23514':
-			return new AdminError('Phone must be +7 followed by exactly 10 digits.', '23514', error);
+			return new AdminError('Телефон должен начинаться с +7 и содержать ровно 10 цифр.', '23514', error);
 		case '23503':
 		case '23001':
 			return new AdminError(
-				'Cannot delete: this record is still referenced by procedures or medications.',
+				'Нельзя удалить: на эту запись ещё ссылаются процедуры или препараты.',
 				codeOf(error),
 				error
 			);
 		case 'P0002':
-			return new AdminError('Record not found.', 'P0002', error);
+			return new AdminError('Запись не найдена.', 'P0002', error);
 		case '22P02':
-			return new AdminError('Enter a valid UUID.', '22P02', error);
+			return new AdminError('Введите корректный UUID.', '22P02', error);
 		case '22007':
 		case '22008':
-			return new AdminError('Enter a valid date or time.', '22007', error);
+			return new AdminError('Введите корректную дату или время.', '22007', error);
 		case '22001':
-			return new AdminError('One of the values is too long.', '22001', error);
+			return new AdminError('Одно из значений слишком длинное.', '22001', error);
 		case '23502':
-			return new AdminError('Required fields must not be empty.', '23502', error);
+			return new AdminError('Обязательные поля не должны быть пустыми.', '23502', error);
 		default:
 			return new AdminError(fallback, codeOf(error), error);
 	}
@@ -123,7 +123,7 @@ function newTotpSecret() {
 
 async function buildTotpHandoff(role, subjectId, secret) {
 	const totp = new OTPAuth.TOTP({
-		issuer: 'Medical Service',
+		issuer: 'Медицинский сервис',
 		label: `${role}:${subjectId}`,
 		algorithm: 'SHA1',
 		digits: 6,
@@ -145,7 +145,7 @@ async function createWithAuth(role, subjectId, procedureSql, params) {
 			await AuthUser.create({ role, subjectId, credential: secret }, { transaction });
 		});
 	} catch (error) {
-		throw toAdminError(error, 'Could not create the record and its login.');
+		throw toAdminError(error, 'Не удалось создать запись и учётную запись для входа.');
 	}
 
 	return buildTotpHandoff(role, subjectId, secret);
@@ -186,7 +186,7 @@ export async function getAdmin(login) {
 		`SELECT login, fullname, birthdate::text AS birthdate, phone
 		FROM get_admin($1::varchar(30))`,
 		[login],
-		'Could not load the admin profile.'
+		'Не удалось загрузить профиль администратора.'
 	);
 	return rows[0] ?? null;
 }
@@ -200,7 +200,7 @@ export async function searchPatients(q) {
 		`SELECT oms, fullname, birthdate::text AS birthdate, phone
 		FROM search_patients($1)`,
 		[String(q ?? '').trim()],
-		'Could not load patients.'
+		'Не удалось загрузить пациентов.'
 	);
 	return rows;
 }
@@ -210,7 +210,7 @@ export async function getPatient(oms) {
 		`SELECT oms, fullname, birthdate::text AS birthdate, phone
 		FROM get_patient($1::int8)`,
 		[oms],
-		'Could not load the patient.'
+		'Не удалось загрузить пациента.'
 	);
 	return rows[0] ?? null;
 }
@@ -228,7 +228,7 @@ export async function updatePatient(oms, fields) {
 	await query(
 		`CALL admin_update_patient($1::int8, $2::varchar(70), $3::date, $4::varchar(15))`,
 		[oms, fields.fullname ?? null, fields.birthdate ?? null, fields.phone ?? null],
-		'Could not update the patient.'
+		'Не удалось изменить пациента.'
 	);
 }
 
@@ -249,13 +249,13 @@ export async function getPatientProcedures(oms) {
 		FROM get_procedures(p_pat_oms => $1::int8) AS pr
 		ORDER BY pr.proc_time DESC, pr.proc_id DESC`,
 		[oms],
-		'Could not load the patient procedures.'
+		'Не удалось загрузить процедуры пациента.'
 	);
 	return rows;
 }
 
 export async function deletePatient(oms) {
-	await query(`CALL admin_delete_patient($1::int8)`, [oms], 'Could not delete the patient.');
+	await query(`CALL admin_delete_patient($1::int8)`, [oms], 'Не удалось удалить пациента.');
 }
 
 // ---------------------------------------------------------------------------
@@ -267,7 +267,7 @@ export async function searchDoctors(q) {
 		`SELECT license, fullname, birthdate::text AS birthdate, phone
 		FROM search_doctors($1)`,
 		[String(q ?? '').trim()],
-		'Could not load doctors.'
+		'Не удалось загрузить врачей.'
 	);
 	return rows;
 }
@@ -277,7 +277,7 @@ export async function getDoctor(license) {
 		`SELECT license, fullname, birthdate::text AS birthdate, phone
 		FROM get_doctor($1::int8)`,
 		[license],
-		'Could not load the doctor.'
+		'Не удалось загрузить врача.'
 	);
 	return rows[0] ?? null;
 }
@@ -295,7 +295,7 @@ export async function updateDoctor(license, fields) {
 	await query(
 		`CALL admin_update_doctor($1::int8, $2::varchar(70), $3::date, $4::varchar(15))`,
 		[license, fields.fullname ?? null, fields.birthdate ?? null, fields.phone ?? null],
-		'Could not update the doctor.'
+		'Не удалось изменить врача.'
 	);
 }
 
@@ -316,13 +316,13 @@ export async function getDoctorProcedures(license) {
 		FROM get_procedures(p_doc_license => $1::int8) AS pr
 		ORDER BY pr.proc_time DESC, pr.proc_id DESC`,
 		[license],
-		'Could not load the doctor procedures.'
+		'Не удалось загрузить процедуры врача.'
 	);
 	return rows;
 }
 
 export async function deleteDoctor(license) {
-	await query(`CALL admin_delete_doctor($1::int8)`, [license], 'Could not delete the doctor.');
+	await query(`CALL admin_delete_doctor($1::int8)`, [license], 'Не удалось удалить врача.');
 }
 
 // ---------------------------------------------------------------------------
@@ -333,7 +333,7 @@ export async function getMedications() {
 	const { rows } = await query(
 		`SELECT id, name, method FROM get_medications()`,
 		[],
-		'Could not load medications.'
+		'Не удалось загрузить препараты.'
 	);
 	return rows;
 }
@@ -342,7 +342,7 @@ export async function getMedication(id) {
 	const { rows } = await query(
 		`SELECT id, name, method FROM get_medication($1::uuid)`,
 		[id],
-		'Could not load the medication.'
+		'Не удалось загрузить препарат.'
 	);
 	return rows[0] ?? null;
 }
@@ -351,7 +351,7 @@ export async function createMedication({ id, name, method }) {
 	await query(
 		`CALL admin_create_medication($1::uuid, $2::varchar(50), $3::varchar(30))`,
 		[id, name, method],
-		'Could not create the medication.'
+		'Не удалось создать препарат.'
 	);
 }
 
@@ -359,12 +359,12 @@ export async function updateMedication(id, fields) {
 	await query(
 		`CALL admin_update_med($1::uuid, $2::varchar(50), $3::varchar(30))`,
 		[id, fields.name ?? null, fields.method ?? null],
-		'Could not update the medication.'
+		'Не удалось изменить препарат.'
 	);
 }
 
 export async function deleteMedication(id) {
-	await query(`CALL admin_delete_med($1::uuid)`, [id], 'Could not delete the medication.');
+	await query(`CALL admin_delete_med($1::uuid)`, [id], 'Не удалось удалить препарат.');
 }
 
 // ---------------------------------------------------------------------------
@@ -388,7 +388,7 @@ export async function getAllProcedures() {
 		FROM get_procedures() AS pr
 		ORDER BY pr.proc_time DESC, pr.proc_id DESC`,
 		[],
-		'Could not load procedures.'
+		'Не удалось загрузить процедуры.'
 	);
 	return rows;
 }
@@ -409,7 +409,7 @@ export async function getProcedure(id) {
 			admin_edit_timestamp
 		FROM get_procedure($1::int8)`,
 		[id],
-		'Could not load the procedure.'
+		'Не удалось загрузить процедуру.'
 	);
 	return rows[0] ?? null;
 }
@@ -420,7 +420,7 @@ export async function getProcedureMedications(id) {
 		FROM get_procedure_medications($1::int8)
 		ORDER BY med_name, med_id`,
 		[id],
-		'Could not load the applications.'
+		'Не удалось загрузить назначения.'
 	);
 	return rows;
 }
@@ -432,13 +432,13 @@ export async function getProcedureMedications(id) {
  */
 export async function updateProcedure(id, fields, adminLogin) {
 	const current = await getProcedure(id);
-	if (!current) throw new AdminError('Record not found.', 'P0002');
+	if (!current) throw new AdminError('Запись не найдена.', 'P0002');
 
 	let procTime = fields.proc_time ?? current.proc_time;
 	if (typeof procTime === 'string' && DATETIME_LOCAL_RE.test(procTime)) {
 		procTime = dateTimeLocalToIso(procTime);
 	}
-	if (!procTime) throw new AdminError('Enter a valid procedure time.', '22007');
+	if (!procTime) throw new AdminError('Введите корректное время процедуры.', '22007');
 
 	await query(
 		`CALL admin_update_proc(
@@ -457,12 +457,12 @@ export async function updateProcedure(id, fields, adminLogin) {
 			procTime,
 			adminLogin
 		],
-		'Could not update the procedure.'
+		'Не удалось изменить процедуру.'
 	);
 }
 
 export async function deleteProcedure(id) {
-	await query(`CALL admin_delete_proc($1::int8)`, [id], 'Could not delete the procedure.');
+	await query(`CALL admin_delete_proc($1::int8)`, [id], 'Не удалось удалить процедуру.');
 }
 
 export async function addApplication(procId, medId, dosage, adminLogin) {
@@ -474,12 +474,12 @@ export async function addApplication(procId, medId, dosage, adminLogin) {
 	} catch (error) {
 		if (codeOf(error) === '23505') {
 			throw new AdminError(
-				'This medication is already applied to the procedure. Edit its dosage instead.',
+				'Этот препарат уже назначен в процедуре. Измените его дозировку.',
 				'23505',
 				error
 			);
 		}
-		throw toAdminError(error, 'Could not add the medication.');
+		throw toAdminError(error, 'Не удалось добавить препарат.');
 	}
 }
 
@@ -490,7 +490,7 @@ export async function updateApplication(procId, medId, dosage, adminLogin) {
 			await client.query('CALL admin_touch_proc($1::int8, $2::varchar(30))', [procId, adminLogin]);
 		});
 	} catch (error) {
-		throw toAdminError(error, 'Could not update the dosage.');
+		throw toAdminError(error, 'Не удалось изменить дозировку.');
 	}
 }
 
@@ -501,6 +501,6 @@ export async function deleteApplication(procId, medId, adminLogin) {
 			await client.query('CALL admin_touch_proc($1::int8, $2::varchar(30))', [procId, adminLogin]);
 		});
 	} catch (error) {
-		throw toAdminError(error, 'Could not remove the medication.');
+		throw toAdminError(error, 'Не удалось убрать препарат.');
 	}
 }

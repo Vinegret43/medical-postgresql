@@ -19,11 +19,11 @@ const FIELDS = new Set(['fullname', 'birthdate', 'phone']);
 function validateField(field, raw) {
 	const value = String(raw ?? '').trim();
 	if (field === 'fullname') {
-		if (!value || value.length > 70) return 'Full name is required and must be at most 70 characters.';
+		if (!value || value.length > 70) return 'ФИО обязательно и не должно превышать 70 символов.';
 	} else if (field === 'birthdate') {
-		if (!isValidDate(value)) return 'Enter a valid date of birth.';
+		if (!isValidDate(value)) return 'Введите корректную дату рождения.';
 	} else if (field === 'phone') {
-		if (!isValidPhone(value)) return 'Phone must be +7 followed by exactly 10 digits.';
+		if (!isValidPhone(value)) return 'Телефон должен начинаться с +7 и содержать ровно 10 цифр.';
 	}
 	return null;
 }
@@ -32,11 +32,11 @@ export async function load(event) {
 	requireRole('admin', event);
 	const { oms } = event.params;
 
-	if (!isValidBigIntString(oms)) error(400, 'Invalid OMS policy number');
+	if (!isValidBigIntString(oms)) error(400, 'Некорректный номер полиса ОМС');
 
 	try {
 		const patient = await getPatient(oms);
-		if (!patient) error(404, 'Patient not found');
+		if (!patient) error(404, 'Пациент не найден');
 
 		return {
 			patient,
@@ -44,7 +44,7 @@ export async function load(event) {
 			totp: await getTotpHandoff('patient', oms)
 		};
 	} catch (err) {
-		if (isNotFound(err)) error(404, 'Patient not found');
+		if (isNotFound(err)) error(404, 'Пациент не найден');
 		throw err;
 	}
 }
@@ -53,7 +53,7 @@ export const actions = {
 	updateField: async (event) => {
 		requireRole('admin', event);
 		const { oms } = event.params;
-		if (!isValidBigIntString(oms)) return fail(400, { message: 'Enter a valid OMS number.' });
+		if (!isValidBigIntString(oms)) return fail(400, { message: 'Введите корректный номер ОМС.' });
 
 		const data = await event.request.formData();
 		const field = String(data.get('field') ?? '');
@@ -61,7 +61,7 @@ export const actions = {
 		const values = { [field]: raw.trim() };
 
 		if (!FIELDS.has(field)) {
-			return fail(400, { message: 'Unknown patient field.', field, values });
+			return fail(400, { message: 'Неизвестное поле пациента.', field, values });
 		}
 
 		const validationError = validateField(field, raw);
@@ -70,7 +70,7 @@ export const actions = {
 		try {
 			await updatePatient(oms, values);
 		} catch (err) {
-			const message = err instanceof AdminError ? err.message : 'Could not update the patient.';
+			const message = err instanceof AdminError ? err.message : 'Не удалось изменить пациента.';
 			return fail(400, { message, field, values });
 		}
 
@@ -80,17 +80,17 @@ export const actions = {
 	regenerateTotp: async (event) => {
 		requireRole('admin', event);
 		const { oms } = event.params;
-		if (!isValidBigIntString(oms)) return fail(400, { message: 'Enter a valid OMS number.' });
+		if (!isValidBigIntString(oms)) return fail(400, { message: 'Введите корректный номер ОМС.' });
 
 		try {
 			const handoff = await regenerateTotpSecret('patient', oms);
 			return {
 				success: true,
-				message: 'The old secret no longer works and active sessions were revoked.',
+				message: 'Старый секрет больше не работает, все активные сеансы отозваны.',
 				handoff
 			};
 		} catch (err) {
-			const message = err instanceof AdminError ? err.message : 'Could not regenerate the secret.';
+			const message = err instanceof AdminError ? err.message : 'Не удалось сгенерировать новый секрет.';
 			return fail(400, { message });
 		}
 	},
@@ -98,12 +98,12 @@ export const actions = {
 	delete: async (event) => {
 		requireRole('admin', event);
 		const { oms } = event.params;
-		if (!isValidBigIntString(oms)) return fail(400, { message: 'Enter a valid OMS number.' });
+		if (!isValidBigIntString(oms)) return fail(400, { message: 'Введите корректный номер ОМС.' });
 
 		try {
 			await deletePatient(oms);
 		} catch (err) {
-			const message = err instanceof AdminError ? err.message : 'Could not delete the patient.';
+			const message = err instanceof AdminError ? err.message : 'Не удалось удалить пациента.';
 			return fail(400, { message });
 		}
 

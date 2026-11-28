@@ -25,25 +25,25 @@ export const actions = {
 		};
 
 		if (!isValidBigIntString(values.license)) {
-			return fail(400, { message: 'Enter a valid license number.', values });
+			return fail(400, { message: 'Введите корректный номер лицензии.', values });
 		}
 		if (!values.fullname || values.fullname.length > 70) {
 			return fail(400, {
-				message: 'Full name is required and must be at most 70 characters.',
+				message: 'ФИО обязательно и не должно превышать 70 символов.',
 				values
 			});
 		}
 		if (!isValidDate(values.birthdate)) {
-			return fail(400, { message: 'Enter a valid date of birth.', values });
+			return fail(400, { message: 'Введите корректную дату рождения.', values });
 		}
 		if (!isValidPhone(values.phone)) {
-			return fail(400, { message: 'Phone must be +7 followed by exactly 10 digits.', values });
+			return fail(400, { message: 'Телефон должен начинаться с +7 и содержать ровно 10 цифр.', values });
 		}
 
 		try {
 			await createDoctorWithAuth(values);
 		} catch (error) {
-			const message = error instanceof AdminError ? error.message : 'Could not create the doctor.';
+			const message = error instanceof AdminError ? error.message : 'Не удалось создать врача.';
 			return fail(400, { message, values });
 		}
 

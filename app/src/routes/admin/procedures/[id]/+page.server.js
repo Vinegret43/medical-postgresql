@@ -24,11 +24,11 @@ function validateProcedureField(field, raw) {
 	const value = String(raw ?? '').trim();
 
 	if (field === 'proc_name') {
-		if (!value || value.length > 200) return { message: 'Name is required and must be at most 200 characters.' };
+		if (!value || value.length > 200) return { message: 'Название обязательно и не должно превышать 200 символов.' };
 		return { value };
 	}
 	if (field === 'proc_time') {
-		if (!isValidDateTimeLocal(value)) return { message: 'Enter a valid procedure time.' };
+		if (!isValidDateTimeLocal(value)) return { message: 'Введите корректное время процедуры.' };
 		return { value: dateTimeLocalToIso(value) };
 	}
 	return { value: value || null };
@@ -43,11 +43,11 @@ export async function load(event) {
 	requireRole('admin', event);
 	const { id } = event.params;
 
-	if (!isValidBigIntString(id)) error(400, 'Invalid procedure ID');
+	if (!isValidBigIntString(id)) error(400, 'Некорректный идентификатор процедуры');
 
 	try {
 		const procedure = await getProcedure(id);
-		if (!procedure) error(404, 'Procedure not found');
+		if (!procedure) error(404, 'Процедура не найдена');
 
 		return {
 			procedure,
@@ -55,7 +55,7 @@ export async function load(event) {
 			medications: await getMedications()
 		};
 	} catch (err) {
-		if (isNotFound(err)) error(404, 'Procedure not found');
+		if (isNotFound(err)) error(404, 'Процедура не найдена');
 		throw err;
 	}
 }
@@ -64,7 +64,7 @@ export const actions = {
 	updateField: async (event) => {
 		const user = requireRole('admin', event);
 		const { id } = event.params;
-		if (!isValidBigIntString(id)) return fail(400, { message: 'Enter a valid procedure ID.' });
+		if (!isValidBigIntString(id)) return fail(400, { message: 'Введите корректный идентификатор процедуры.' });
 
 		const data = await event.request.formData();
 		const field = String(data.get('field') ?? '');
@@ -72,7 +72,7 @@ export const actions = {
 		const values = { [field]: raw };
 
 		if (!FIELDS.has(field)) {
-			return fail(400, { message: 'Unknown procedure field.', field, values });
+			return fail(400, { message: 'Неизвестное поле процедуры.', field, values });
 		}
 
 		const result = validateProcedureField(field, raw);
@@ -81,7 +81,7 @@ export const actions = {
 		try {
 			await updateProcedure(id, { [field]: result.value }, user.subjectId);
 		} catch (err) {
-			const message = err instanceof AdminError ? err.message : 'Could not update the procedure.';
+			const message = err instanceof AdminError ? err.message : 'Не удалось изменить процедуру.';
 			return fail(400, { message, field, values });
 		}
 
@@ -91,84 +91,84 @@ export const actions = {
 	addApplication: async (event) => {
 		const user = requireRole('admin', event);
 		const { id } = event.params;
-		if (!isValidBigIntString(id)) return fail(400, { message: 'Enter a valid procedure ID.' });
+		if (!isValidBigIntString(id)) return fail(400, { message: 'Введите корректный идентификатор процедуры.' });
 
 		const data = await event.request.formData();
 		const medId = String(data.get('med_id') ?? '').trim();
 		const dosageRaw = String(data.get('dosage') ?? '').trim();
 		const values = { med_id: medId, dosage: dosageRaw };
 
-		if (!isValidUuid(medId)) return fail(400, { message: 'Select a medication from the catalog.', values });
+		if (!isValidUuid(medId)) return fail(400, { message: 'Выберите препарат из каталога.', values });
 
 		const dosage = parseDosage(dosageRaw);
-		if (dosage === null) return fail(400, { message: 'Dosage must be greater than zero.', values });
+		if (dosage === null) return fail(400, { message: 'Дозировка должна быть больше нуля.', values });
 
 		const medication = await getMedication(medId);
-		if (!medication) return fail(400, { message: 'Select a medication from the catalog.', values });
+		if (!medication) return fail(400, { message: 'Выберите препарат из каталога.', values });
 
 		try {
 			await addApplication(id, medId, dosage, user.subjectId);
 		} catch (err) {
-			const message = err instanceof AdminError ? err.message : 'Could not add the medication.';
+			const message = err instanceof AdminError ? err.message : 'Не удалось добавить препарат.';
 			return fail(400, { message, values });
 		}
 
-		return { success: true, message: 'Medication added to the procedure.' };
+		return { success: true, message: 'Препарат добавлен в процедуру.' };
 	},
 
 	updateApplication: async (event) => {
 		const user = requireRole('admin', event);
 		const { id } = event.params;
-		if (!isValidBigIntString(id)) return fail(400, { message: 'Enter a valid procedure ID.' });
+		if (!isValidBigIntString(id)) return fail(400, { message: 'Введите корректный идентификатор процедуры.' });
 
 		const data = await event.request.formData();
 		const medId = String(data.get('med_id') ?? '').trim();
 		const dosageRaw = String(data.get('dosage') ?? '').trim();
 		const values = { med_id: medId, dosage: dosageRaw };
 
-		if (!isValidUuid(medId)) return fail(400, { message: 'Select a medication from the catalog.', values });
+		if (!isValidUuid(medId)) return fail(400, { message: 'Выберите препарат из каталога.', values });
 
 		const dosage = parseDosage(dosageRaw);
-		if (dosage === null) return fail(400, { message: 'Dosage must be greater than zero.', values });
+		if (dosage === null) return fail(400, { message: 'Дозировка должна быть больше нуля.', values });
 
 		try {
 			await updateApplication(id, medId, dosage, user.subjectId);
 		} catch (err) {
-			const message = err instanceof AdminError ? err.message : 'Could not update the dosage.';
+			const message = err instanceof AdminError ? err.message : 'Не удалось изменить дозировку.';
 			return fail(400, { message, values });
 		}
 
-		return { success: true, message: 'Dosage updated.' };
+		return { success: true, message: 'Дозировка обновлена.' };
 	},
 
 	deleteApplication: async (event) => {
 		const user = requireRole('admin', event);
 		const { id } = event.params;
-		if (!isValidBigIntString(id)) return fail(400, { message: 'Enter a valid procedure ID.' });
+		if (!isValidBigIntString(id)) return fail(400, { message: 'Введите корректный идентификатор процедуры.' });
 
 		const data = await event.request.formData();
 		const medId = String(data.get('med_id') ?? '').trim();
-		if (!isValidUuid(medId)) return fail(400, { message: 'Select a medication from the catalog.' });
+		if (!isValidUuid(medId)) return fail(400, { message: 'Выберите препарат из каталога.' });
 
 		try {
 			await deleteApplication(id, medId, user.subjectId);
 		} catch (err) {
-			const message = err instanceof AdminError ? err.message : 'Could not remove the medication.';
+			const message = err instanceof AdminError ? err.message : 'Не удалось убрать препарат.';
 			return fail(400, { message });
 		}
 
-		return { success: true, message: 'Medication removed from the procedure.' };
+		return { success: true, message: 'Препарат убран из процедуры.' };
 	},
 
 	deleteProcedure: async (event) => {
 		requireRole('admin', event);
 		const { id } = event.params;
-		if (!isValidBigIntString(id)) return fail(400, { message: 'Enter a valid procedure ID.' });
+		if (!isValidBigIntString(id)) return fail(400, { message: 'Введите корректный идентификатор процедуры.' });
 
 		try {
 			await deleteProcedure(id);
 		} catch (err) {
-			const message = err instanceof AdminError ? err.message : 'Could not delete the procedure.';
+			const message = err instanceof AdminError ? err.message : 'Не удалось удалить процедуру.';
 			return fail(400, { message });
 		}
 

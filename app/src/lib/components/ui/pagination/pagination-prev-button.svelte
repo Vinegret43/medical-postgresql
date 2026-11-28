@@ -14,12 +14,12 @@
 
 {#snippet Fallback()}
 	<ChevronLeftIcon class={cn("cn-rtl-flip size-4", className)} />
-	<span>Previous</span>
+	<span>Назад</span>
 {/snippet}
 
 <PaginationPrimitive.PrevButton
 	bind:ref
-	aria-label="Go to previous page"
+	aria-label="Перейти на предыдущую страницу"
 	class={cn(buttonVariants({ variant: "ghost" }), "pl-2!", className)}
 	{...restProps}
 >

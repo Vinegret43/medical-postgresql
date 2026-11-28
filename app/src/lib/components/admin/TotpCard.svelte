@@ -9,6 +9,13 @@
 
 	let { handoff, subjectType = 'account' } = $props();
 
+	const SUBJECT_NAMES = {
+		patient: { dative: 'пациенту', genitive: 'пациента' },
+		doctor: { dative: 'врачу', genitive: 'врача' },
+		account: { dative: 'учётной записи', genitive: 'учётной записи' }
+	};
+
+	let subject = $derived(SUBJECT_NAMES[subjectType] ?? SUBJECT_NAMES.account);
 	let revealed = $state(false);
 	let busy = $state(false);
 	let open = $state(false);
@@ -19,9 +26,9 @@
 {#if handoff}
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Sign-in code</Card.Title>
+			<Card.Title>Код для входа</Card.Title>
 			<Card.Description>
-				Give this secret or QR code to the {subjectType}. Codes change every 30 seconds.
+				Передайте этот секрет или QR-код {subject.dative}. Коды меняются каждые 30 секунд.
 			</Card.Description>
 			<Card.Action>
 				<Badge variant="secondary">TOTP</Badge>
@@ -31,7 +38,7 @@
 			<div class="grid gap-4 sm:grid-cols-[1fr_auto]">
 				<div class="flex flex-col gap-3">
 					<div class="flex flex-col gap-1">
-						<span class="text-xs tracking-wide text-muted-foreground uppercase">Base32 secret</span>
+						<span class="text-xs tracking-wide text-muted-foreground uppercase">Секрет Base32</span>
 						<code class="break-all font-mono text-sm select-all">
 							{revealed ? handoff.secret : masked}
 						</code>
@@ -40,7 +47,7 @@
 					<div class="flex flex-wrap gap-2">
 						<Button type="button" size="sm" variant="outline" onclick={() => (revealed = !revealed)}>
 							<KeyRoundIcon data-icon="inline-start" />
-							{revealed ? 'Hide' : 'Reveal'}
+							{revealed ? 'Скрыть' : 'Показать'}
 						</Button>
 
 						<AlertDialog.Root bind:open>
@@ -48,7 +55,7 @@
 								{#snippet child({ props })}
 									<Button {...props} size="sm" variant="destructive">
 										<RefreshCwIcon data-icon="inline-start" />
-										Regenerate
+										Обновить
 									</Button>
 								{/snippet}
 							</AlertDialog.Trigger>
@@ -56,14 +63,14 @@
 								<AlertDialog.Overlay />
 								<AlertDialog.Content>
 									<AlertDialog.Header>
-										<AlertDialog.Title>Regenerate this secret?</AlertDialog.Title>
+										<AlertDialog.Title>Сгенерировать новый секрет?</AlertDialog.Title>
 										<AlertDialog.Description>
-											The old secret stops working immediately and all active sessions for this
-											{subjectType} are revoked.
+											Старый секрет перестанет работать сразу, все активные сеансы {subject.genitive}
+											будут отозваны.
 										</AlertDialog.Description>
 									</AlertDialog.Header>
 									<AlertDialog.Footer>
-										<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+										<AlertDialog.Cancel>Отмена</AlertDialog.Cancel>
 										<form
 											method="POST"
 											action="?/regenerateTotp"
@@ -78,7 +85,7 @@
 											}}
 										>
 											<Button type="submit" variant="destructive" disabled={busy}>
-												Regenerate secret
+												Сгенерировать новый секрет
 											</Button>
 										</form>
 									</AlertDialog.Footer>
@@ -91,7 +98,7 @@
 				<div class="flex flex-col items-center gap-2">
 					<img
 						src={handoff.qrDataUrl}
-						alt="TOTP enrollment QR code"
+						alt="QR-код для настройки TOTP"
 						class="size-40 rounded-md border bg-background p-2 transition"
 						class:blur-lg={!revealed}
 						class:select-none={!revealed}
@@ -99,7 +106,7 @@
 						aria-hidden={!revealed}
 					/>
 					<span class="text-xs text-muted-foreground">
-						{revealed ? 'Scan with an authenticator app' : 'Reveal to scan'}
+						{revealed ? 'Отсканируйте приложением-аутентификатором' : 'Покажите, чтобы отсканировать'}
 					</span>
 				</div>
 			</div>

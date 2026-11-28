@@ -2,6 +2,6 @@ import { defineEnvVars } from '@sveltejs/kit/env';
 
 export const variables = defineEnvVars({
 	DATABASE_URL: {
-		description: 'PostgreSQL connection string for the medical database'
+		description: 'Строка подключения к базе данных медицинского сервиса PostgreSQL'
 	}
 });

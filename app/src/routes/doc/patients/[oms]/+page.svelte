@@ -20,26 +20,26 @@
 	<Card.Root>
 		<Card.Header>
 			<Card.Title>{data.patient.fullname}</Card.Title>
-			<Card.Description>Patient record and visit history.</Card.Description>
+			<Card.Description>Данные пациента и история посещений.</Card.Description>
 			<Card.Action>
 				<Button href={`/doc/new?oms=${data.patient.oms}`} size="sm">
 					<PlusIcon data-icon="inline-start" />
-					New procedure
+					Новая процедура
 				</Button>
 			</Card.Action>
 		</Card.Header>
 		<Card.Content>
 			<div class="grid gap-4 sm:grid-cols-2">
 				<div class="flex flex-col gap-1">
-					<span class="text-xs tracking-wide text-muted-foreground uppercase">OMS policy number</span>
+					<span class="text-xs tracking-wide text-muted-foreground uppercase">Номер полиса ОМС</span>
 					<span class="font-medium">{data.patient.oms}</span>
 				</div>
 				<div class="flex flex-col gap-1">
-					<span class="text-xs tracking-wide text-muted-foreground uppercase">Date of birth</span>
+					<span class="text-xs tracking-wide text-muted-foreground uppercase">Дата рождения</span>
 					<span class="font-medium">{formatDate(data.patient.birthdate)}</span>
 				</div>
 				<div class="flex flex-col gap-1 sm:col-span-2">
-					<span class="text-xs tracking-wide text-muted-foreground uppercase">Phone</span>
+					<span class="text-xs tracking-wide text-muted-foreground uppercase">Телефон</span>
 					<span class="font-medium">{data.patient.phone}</span>
 				</div>
 			</div>
@@ -48,10 +48,10 @@
 
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Procedures</Card.Title>
-			<Card.Description>All procedures recorded for this patient.</Card.Description>
+			<Card.Title>Процедуры</Card.Title>
+			<Card.Description>Все процедуры, записанные для этого пациента.</Card.Description>
 			<Card.Action>
-				<Badge variant="secondary">{procedures.length} total</Badge>
+				<Badge variant="secondary">Всего: {procedures.length}</Badge>
 			</Card.Action>
 		</Card.Header>
 		<Card.Content>
@@ -59,21 +59,21 @@
 				<Empty.Root>
 					<Empty.Header>
 						<Empty.Media variant="icon"><ClipboardListIcon /></Empty.Media>
-						<Empty.Title>No procedures yet</Empty.Title>
-						<Empty.Description>This patient has no recorded procedures.</Empty.Description>
+						<Empty.Title>Процедур пока нет</Empty.Title>
+						<Empty.Description>У этого пациента нет записанных процедур.</Empty.Description>
 					</Empty.Header>
 				</Empty.Root>
 			{:else}
 				<Table.Root>
-					<Table.Caption>Recorded procedures.</Table.Caption>
+					<Table.Caption>Записанные процедуры.</Table.Caption>
 					<Table.Header>
 						<Table.Row>
-							<Table.Head>Date</Table.Head>
-							<Table.Head>Doctor</Table.Head>
-							<Table.Head>Procedure</Table.Head>
-							<Table.Head>Remarks</Table.Head>
-							<Table.Head>Recommendations</Table.Head>
-							<Table.Head class="text-right">Details</Table.Head>
+							<Table.Head>Дата</Table.Head>
+							<Table.Head>Врач</Table.Head>
+							<Table.Head>Процедура</Table.Head>
+							<Table.Head>Замечания</Table.Head>
+							<Table.Head>Рекомендации</Table.Head>
+							<Table.Head class="text-right">Подробнее</Table.Head>
 						</Table.Row>
 					</Table.Header>
 					<Table.Body>
@@ -92,7 +92,7 @@
 								</Table.Cell>
 								<Table.Cell class="text-right">
 									<Button href={`/doc/procedure/${procedure.proc_id}`} variant="link" size="sm">
-										View
+										Просмотр
 									</Button>
 								</Table.Cell>
 							</Table.Row>

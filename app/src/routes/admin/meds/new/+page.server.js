@@ -22,17 +22,17 @@ export const actions = {
 		};
 
 		if (!isValidUuid(values.id)) {
-			return fail(400, { message: 'Enter a valid UUID.', values });
+			return fail(400, { message: 'Введите корректный UUID.', values });
 		}
 		if (!values.name || values.name.length > 50) {
 			return fail(400, {
-				message: 'Name is required and must be at most 50 characters.',
+				message: 'Название обязательно и не должно превышать 50 символов.',
 				values
 			});
 		}
 		if (!values.method || values.method.length > 30) {
 			return fail(400, {
-				message: 'Method is required and must be at most 30 characters.',
+				message: 'Способ применения обязателен и не должен превышать 30 символов.',
 				values
 			});
 		}
@@ -40,7 +40,7 @@ export const actions = {
 		try {
 			await createMedication(values);
 		} catch (error) {
-			const message = error instanceof AdminError ? error.message : 'Could not create the medication.';
+			const message = error instanceof AdminError ? error.message : 'Не удалось создать препарат.';
 			return fail(400, { message, values });
 		}
 

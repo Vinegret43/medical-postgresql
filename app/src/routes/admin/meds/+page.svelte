@@ -12,20 +12,20 @@
 </script>
 
 <svelte:head>
-	<title>Medications</title>
+	<title>Лекарства</title>
 </svelte:head>
 
 <div class="flex flex-col gap-4">
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Medication catalog</Card.Title>
+			<Card.Title>Каталог лекарств</Card.Title>
 			<Card.Description>
-				Each medication has a manually entered "честный знак" UUID.
+				У каждого лекарства есть введённый вручную UUID «честного знака».
 			</Card.Description>
 			<Card.Action>
 				<Button href="/admin/meds/new" size="sm">
 					<PlusIcon data-icon="inline-start" />
-					New medication
+					Новый препарат
 				</Button>
 			</Card.Action>
 		</Card.Header>
@@ -34,19 +34,19 @@
 				<Empty.Root>
 					<Empty.Header>
 						<Empty.Media variant="icon"><PillIcon /></Empty.Media>
-						<Empty.Title>No medications yet</Empty.Title>
-						<Empty.Description>Add the first medication to the catalog.</Empty.Description>
+						<Empty.Title>Препаратов пока нет</Empty.Title>
+						<Empty.Description>Добавьте первый препарат в каталог.</Empty.Description>
 					</Empty.Header>
 				</Empty.Root>
 			{:else}
 				<Table.Root>
-					<Table.Caption>Medication records.</Table.Caption>
+					<Table.Caption>Данные препаратов.</Table.Caption>
 					<Table.Header>
 						<Table.Row>
-							<Table.Head>Mark ID</Table.Head>
-							<Table.Head>Name</Table.Head>
-							<Table.Head>Method</Table.Head>
-							<Table.Head class="text-right">Actions</Table.Head>
+							<Table.Head>Идентификатор знака</Table.Head>
+							<Table.Head>Название</Table.Head>
+							<Table.Head>Способ применения</Table.Head>
+							<Table.Head class="text-right">Действия</Table.Head>
 						</Table.Row>
 					</Table.Header>
 					<Table.Body>
@@ -61,7 +61,7 @@
 								</Table.Cell>
 								<Table.Cell class="text-right">
 									<Button href={`/admin/meds/${medication.id}`} variant="link" size="sm">
-										Edit
+										Изменить
 									</Button>
 								</Table.Cell>
 							</Table.Row>

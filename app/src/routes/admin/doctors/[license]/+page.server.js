@@ -19,11 +19,11 @@ const FIELDS = new Set(['fullname', 'birthdate', 'phone']);
 function validateField(field, raw) {
 	const value = String(raw ?? '').trim();
 	if (field === 'fullname') {
-		if (!value || value.length > 70) return 'Full name is required and must be at most 70 characters.';
+		if (!value || value.length > 70) return 'ФИО обязательно и не должно превышать 70 символов.';
 	} else if (field === 'birthdate') {
-		if (!isValidDate(value)) return 'Enter a valid date of birth.';
+		if (!isValidDate(value)) return 'Введите корректную дату рождения.';
 	} else if (field === 'phone') {
-		if (!isValidPhone(value)) return 'Phone must be +7 followed by exactly 10 digits.';
+		if (!isValidPhone(value)) return 'Телефон должен начинаться с +7 и содержать ровно 10 цифр.';
 	}
 	return null;
 }
@@ -32,11 +32,11 @@ export async function load(event) {
 	requireRole('admin', event);
 	const { license } = event.params;
 
-	if (!isValidBigIntString(license)) error(400, 'Invalid doctor license');
+	if (!isValidBigIntString(license)) error(400, 'Некорректная лицензия врача');
 
 	try {
 		const doctor = await getDoctor(license);
-		if (!doctor) error(404, 'Doctor not found');
+		if (!doctor) error(404, 'Врач не найден');
 
 		return {
 			doctor,
@@ -44,7 +44,7 @@ export async function load(event) {
 			totp: await getTotpHandoff('doctor', license)
 		};
 	} catch (err) {
-		if (isNotFound(err)) error(404, 'Doctor not found');
+		if (isNotFound(err)) error(404, 'Врач не найден');
 		throw err;
 	}
 }
@@ -53,7 +53,7 @@ export const actions = {
 	updateField: async (event) => {
 		requireRole('admin', event);
 		const { license } = event.params;
-		if (!isValidBigIntString(license)) return fail(400, { message: 'Enter a valid license number.' });
+		if (!isValidBigIntString(license)) return fail(400, { message: 'Введите корректный номер лицензии.' });
 
 		const data = await event.request.formData();
 		const field = String(data.get('field') ?? '');
@@ -61,7 +61,7 @@ export const actions = {
 		const values = { [field]: raw.trim() };
 
 		if (!FIELDS.has(field)) {
-			return fail(400, { message: 'Unknown doctor field.', field, values });
+			return fail(400, { message: 'Неизвестное поле врача.', field, values });
 		}
 
 		const validationError = validateField(field, raw);
@@ -70,7 +70,7 @@ export const actions = {
 		try {
 			await updateDoctor(license, values);
 		} catch (err) {
-			const message = err instanceof AdminError ? err.message : 'Could not update the doctor.';
+			const message = err instanceof AdminError ? err.message : 'Не удалось изменить врача.';
 			return fail(400, { message, field, values });
 		}
 
@@ -80,17 +80,17 @@ export const actions = {
 	regenerateTotp: async (event) => {
 		requireRole('admin', event);
 		const { license } = event.params;
-		if (!isValidBigIntString(license)) return fail(400, { message: 'Enter a valid license number.' });
+		if (!isValidBigIntString(license)) return fail(400, { message: 'Введите корректный номер лицензии.' });
 
 		try {
 			const handoff = await regenerateTotpSecret('doctor', license);
 			return {
 				success: true,
-				message: 'The old secret no longer works and active sessions were revoked.',
+				message: 'Старый секрет больше не работает, все активные сеансы отозваны.',
 				handoff
 			};
 		} catch (err) {
-			const message = err instanceof AdminError ? err.message : 'Could not regenerate the secret.';
+			const message = err instanceof AdminError ? err.message : 'Не удалось сгенерировать новый секрет.';
 			return fail(400, { message });
 		}
 	},
@@ -98,12 +98,12 @@ export const actions = {
 	delete: async (event) => {
 		requireRole('admin', event);
 		const { license } = event.params;
-		if (!isValidBigIntString(license)) return fail(400, { message: 'Enter a valid license number.' });
+		if (!isValidBigIntString(license)) return fail(400, { message: 'Введите корректный номер лицензии.' });
 
 		try {
 			await deleteDoctor(license);
 		} catch (err) {
-			const message = err instanceof AdminError ? err.message : 'Could not delete the doctor.';
+			const message = err instanceof AdminError ? err.message : 'Не удалось удалить врача.';
 			return fail(400, { message });
 		}
 

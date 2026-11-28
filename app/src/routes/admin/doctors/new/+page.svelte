@@ -11,19 +11,19 @@
 </script>
 
 <svelte:head>
-	<title>New doctor</title>
+	<title>Новый врач</title>
 </svelte:head>
 
 <div class="flex flex-col gap-4">
 	<Button href="/admin/doctors" variant="ghost" size="sm" class="self-start">
 		<ArrowLeftIcon data-icon="inline-start" />
-		Back to doctors
+		К врачам
 	</Button>
 
 	{#if form?.message}
 		<Alert.Root variant="destructive">
 			<ShieldAlertIcon />
-			<Alert.Title>Could not create doctor</Alert.Title>
+			<Alert.Title>Не удалось создать врача</Alert.Title>
 			<Alert.Description>{form.message}</Alert.Description>
 		</Alert.Root>
 	{/if}
@@ -31,16 +31,15 @@
 	<form method="POST" class="flex flex-col gap-4">
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>New doctor</Card.Title>
+				<Card.Title>Новый врач</Card.Title>
 				<Card.Description>
-					A sign-in code is generated automatically. You can hand it to the doctor from the
-					record page.
+					Код для входа создаётся автоматически. Вы можете передать его врачу со страницы записи.
 				</Card.Description>
 			</Card.Header>
 			<Card.Content>
 				<Field.FieldGroup>
 					<Field.Field>
-						<Field.FieldLabel for="license">License number</Field.FieldLabel>
+						<Field.FieldLabel for="license">Номер лицензии</Field.FieldLabel>
 						<Input
 							id="license"
 							name="license"
@@ -49,10 +48,10 @@
 							placeholder="1000000001"
 							required
 						/>
-						<Field.FieldDescription>This identifier is immutable.</Field.FieldDescription>
+						<Field.FieldDescription>Этот идентификатор нельзя изменить.</Field.FieldDescription>
 					</Field.Field>
 					<Field.Field>
-						<Field.FieldLabel for="fullname">Full name</Field.FieldLabel>
+						<Field.FieldLabel for="fullname">ФИО</Field.FieldLabel>
 						<Input
 							id="fullname"
 							name="fullname"
@@ -62,7 +61,7 @@
 						/>
 					</Field.Field>
 					<Field.Field>
-						<Field.FieldLabel for="birthdate">Date of birth</Field.FieldLabel>
+						<Field.FieldLabel for="birthdate">Дата рождения</Field.FieldLabel>
 						<Input
 							id="birthdate"
 							name="birthdate"
@@ -72,7 +71,7 @@
 						/>
 					</Field.Field>
 					<Field.Field>
-						<Field.FieldLabel for="phone">Phone</Field.FieldLabel>
+						<Field.FieldLabel for="phone">Телефон</Field.FieldLabel>
 						<Input
 							id="phone"
 							name="phone"
@@ -84,8 +83,8 @@
 				</Field.FieldGroup>
 			</Card.Content>
 			<Card.Footer class="justify-between">
-				<Button href="/admin/doctors" variant="ghost">Cancel</Button>
-				<Button type="submit">Create doctor</Button>
+				<Button href="/admin/doctors" variant="ghost">Отмена</Button>
+				<Button type="submit">Создать врача</Button>
 			</Card.Footer>
 		</Card.Root>
 	</form>

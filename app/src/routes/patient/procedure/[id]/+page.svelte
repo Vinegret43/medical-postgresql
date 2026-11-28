@@ -13,13 +13,13 @@
 </script>
 
 <svelte:head>
-	<title>{data.procedure?.proc_name ?? 'Procedure details'}</title>
+	<title>{data.procedure?.proc_name ?? 'Детали процедуры'}</title>
 </svelte:head>
 
 <div class="flex flex-col gap-4">
 	<Button href="/patient" variant="ghost" size="sm" class="self-start">
 		<ArrowLeftIcon data-icon="inline-start" />
-		Back to procedures
+		К процедурам
 	</Button>
 
 	{#if data.procedure}
@@ -27,21 +27,21 @@
 			<Card.Header>
 				<Card.Title>{data.procedure.proc_name}</Card.Title>
 				<Card.Description>
-					Procedure #{data.procedure.proc_id} · {formatDateTime(data.procedure.proc_time)}
+					Процедура №{data.procedure.proc_id} · {formatDateTime(data.procedure.proc_time)}
 				</Card.Description>
 			</Card.Header>
 			<Card.Content>
 				<div class="grid gap-4 sm:grid-cols-2">
 					<div class="flex flex-col gap-1">
-						<span class="text-xs tracking-wide text-muted-foreground uppercase">Doctor</span>
+						<span class="text-xs tracking-wide text-muted-foreground uppercase">Врач</span>
 						<span class="font-medium">{data.procedure.doc_fullname}</span>
 					</div>
 					<div class="flex flex-col gap-1">
-						<span class="text-xs tracking-wide text-muted-foreground uppercase">Doctor phone</span>
+						<span class="text-xs tracking-wide text-muted-foreground uppercase">Телефон врача</span>
 						<span class="font-medium">{data.procedure.doc_phone}</span>
 					</div>
 					<div class="flex flex-col gap-1 sm:col-span-2">
-						<span class="text-xs tracking-wide text-muted-foreground uppercase">Recommendations</span>
+						<span class="text-xs tracking-wide text-muted-foreground uppercase">Рекомендации</span>
 						<span class="font-medium">{data.procedure.recommendations ?? '—'}</span>
 					</div>
 				</div>
@@ -51,10 +51,10 @@
 
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Applied medications</Card.Title>
-			<Card.Description>Medicines recorded for this procedure.</Card.Description>
+			<Card.Title>Применённые препараты</Card.Title>
+			<Card.Description>Препараты, записанные для этой процедуры.</Card.Description>
 			<Card.Action>
-				<Badge variant="secondary">{medications.length} total</Badge>
+				<Badge variant="secondary">Всего: {medications.length}</Badge>
 			</Card.Action>
 		</Card.Header>
 		<Card.Content>
@@ -62,21 +62,21 @@
 				<Empty.Root>
 					<Empty.Header>
 						<Empty.Media variant="icon"><PillIcon /></Empty.Media>
-						<Empty.Title>No medications recorded</Empty.Title>
+						<Empty.Title>Препараты не записаны</Empty.Title>
 						<Empty.Description>
-							This procedure does not have any medication applications.
+							К этой процедуре не добавлены назначения.
 						</Empty.Description>
 					</Empty.Header>
 				</Empty.Root>
 			{:else}
 				<Table.Root>
-					<Table.Caption>Medication applications for this procedure.</Table.Caption>
+					<Table.Caption>Назначения препаратов для этой процедуры.</Table.Caption>
 					<Table.Header>
 						<Table.Row>
-							<Table.Head>Medicine</Table.Head>
-							<Table.Head>Method</Table.Head>
-							<Table.Head class="text-right">Dosage</Table.Head>
-							<Table.Head>Mark ID</Table.Head>
+							<Table.Head>Препарат</Table.Head>
+							<Table.Head>Способ применения</Table.Head>
+							<Table.Head class="text-right">Дозировка</Table.Head>
+							<Table.Head>Идентификатор знака</Table.Head>
 						</Table.Row>
 					</Table.Header>
 					<Table.Body>

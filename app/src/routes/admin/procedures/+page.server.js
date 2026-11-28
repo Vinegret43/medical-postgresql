@@ -13,15 +13,15 @@ export const actions = {
 
 		const data = await event.request.formData();
 		const procId = String(data.get('proc_id') ?? '').trim();
-		if (!isValidBigIntString(procId)) return fail(400, { message: 'Enter a valid procedure ID.' });
+		if (!isValidBigIntString(procId)) return fail(400, { message: 'Введите корректный идентификатор процедуры.' });
 
 		try {
 			await deleteProcedure(procId);
 		} catch (err) {
-			const message = err instanceof AdminError ? err.message : 'Could not delete the procedure.';
+			const message = err instanceof AdminError ? err.message : 'Не удалось удалить процедуру.';
 			return fail(400, { message });
 		}
 
-		return { success: true, message: 'Procedure deleted.' };
+		return { success: true, message: 'Процедура удалена.' };
 	}
 };

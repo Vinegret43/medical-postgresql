@@ -29,8 +29,8 @@ export async function load(event) {
 	let omsError = null;
 	if (rawOms && !patient) {
 		omsError = OMS_RE.test(rawOms)
-			? 'No patient exists with that OMS policy number.'
-			: 'OMS must contain only digits.';
+			? 'Пациент с таким номером полиса ОМС не найден.'
+			: 'Номер ОМС должен содержать только цифры.';
 	}
 
 	return {
@@ -64,29 +64,29 @@ export const actions = {
 		};
 
 		if (!OMS_RE.test(oms)) {
-			return fail(400, { message: 'Enter a valid OMS policy number.', values });
+			return fail(400, { message: 'Введите корректный номер полиса ОМС.', values });
 		}
 
 		const patient = await getPatient(oms);
 		if (!patient) {
-			return fail(400, { message: 'No patient exists with that OMS policy number.', values });
+			return fail(400, { message: 'Пациент с таким номером полиса ОМС не найден.', values });
 		}
 
 		const patientPreview = { oms: patient.oms, fullname: patient.fullname };
 		const invalid = (message) => fail(400, { message, values, patient: patientPreview });
 
 		if (!procName || procName.length > 200) {
-			return invalid('Procedure name is required and must be at most 200 characters.');
+			return invalid('Название процедуры обязательно и не должно превышать 200 символов.');
 		}
 
 		let procTime = null;
 		if (procTimeRaw) {
 			if (!DATETIME_LOCAL_RE.test(procTimeRaw)) {
-				return invalid('Enter a valid procedure time.');
+				return invalid('Введите корректное время процедуры.');
 			}
 			const parsed = new Date(`${procTimeRaw}Z`);
 			if (Number.isNaN(parsed.getTime())) {
-				return invalid('Enter a valid procedure time.');
+				return invalid('Введите корректное время процедуры.');
 			}
 			procTime = parsed.toISOString();
 		}
@@ -97,7 +97,7 @@ export const actions = {
 		const dosages = data.getAll('dosage').map((value) => String(value).trim());
 
 		if (medIds.length !== dosages.length) {
-			return invalid('Medication data is incomplete.');
+			return invalid('Данные о препаратах неполные.');
 		}
 
 		const merged = new Map();
@@ -108,12 +108,12 @@ export const actions = {
 			if (!medId && !dosageRaw) continue;
 
 			if (!UUID_RE.test(medId) || !catalogById.has(medId)) {
-				return invalid('Select a medication from the catalog.');
+				return invalid('Выберите препарат из каталога.');
 			}
 
 			const dosage = Number(dosageRaw);
 			if (!Number.isFinite(dosage) || dosage <= 0) {
-				return invalid('Each medication needs a dosage greater than zero.');
+				return invalid('Для каждого препарата нужна дозировка больше нуля.');
 			}
 
 			merged.set(medId, (merged.get(medId) ?? 0) + dosage);
@@ -136,9 +136,9 @@ export const actions = {
 				medications: values.medications
 			});
 		} catch (err) {
-			console.error('Failed to create procedure', err);
+			console.error('Не удалось создать процедуру', err);
 			return fail(500, {
-				message: 'Could not save the procedure. No partial record was kept.',
+				message: 'Не удалось сохранить процедуру. Частичная запись не сохранена.',
 				values,
 				patient: patientPreview
 			});

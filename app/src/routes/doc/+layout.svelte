@@ -9,14 +9,14 @@
 	let { data, children } = $props();
 
 	const links = [
-		{ href: '/doc', label: 'My procedures' },
-		{ href: '/doc/all', label: 'All procedures' },
-		{ href: '/doc/patients', label: 'Patients' },
-		{ href: '/doc/new', label: 'New procedure' },
-		{ href: '/doc/meds', label: 'Medications' }
+		{ href: '/doc', label: 'Мои процедуры' },
+		{ href: '/doc/all', label: 'Все процедуры' },
+		{ href: '/doc/patients', label: 'Пациенты' },
+		{ href: '/doc/new', label: 'Новая процедура' },
+		{ href: '/doc/meds', label: 'Лекарства' }
 	];
 
-	let doctorName = $derived(data.doctor?.fullname ?? 'Doctor');
+	let doctorName = $derived(data.doctor?.fullname ?? 'Врач');
 	let initials = $derived(
 		doctorName
 			.split(/\s+/)
@@ -39,7 +39,7 @@
 					<HeartPulseIcon class="size-5 text-primary" />
 					<Button href="/doc" variant="ghost" size="sm">
 						<HouseIcon data-icon="inline-start" />
-						Home
+						Главная
 					</Button>
 					<span class="text-muted-foreground">/</span>
 					<span class="text-sm font-medium">{doctorName}</span>
@@ -61,7 +61,7 @@
 					<Avatar.Root class="size-6">
 						<Avatar.Fallback>{initials}</Avatar.Fallback>
 					</Avatar.Root>
-					Profile
+					Профиль
 				</Button>
 			</div>
 		</header>

@@ -45,7 +45,7 @@
 		lookupTimer = setTimeout(async () => {
 			if (!/^\d{1,19}$/.test(oms)) {
 				patientPreview = null;
-				omsError = oms ? 'OMS must contain only digits.' : null;
+				omsError = oms ? 'Номер ОМС должен содержать только цифры.' : null;
 				return;
 			}
 
@@ -57,7 +57,7 @@
 				omsError = null;
 			} else {
 				patientPreview = null;
-				omsError = 'No patient exists with that OMS policy number.';
+				omsError = 'Пациент с таким номером полиса ОМС не найден.';
 			}
 		}, 250);
 	}
@@ -77,11 +77,11 @@
 		const dosage = Number(selectedDosage);
 
 		if (!selectedMed) {
-			medError = 'Choose a medication from the list.';
+			medError = 'Выберите препарат из списка.';
 			return;
 		}
 		if (!Number.isFinite(dosage) || dosage <= 0) {
-			medError = 'Dosage must be greater than zero.';
+			medError = 'Дозировка должна быть больше нуля.';
 			return;
 		}
 
@@ -115,36 +115,36 @@
 </script>
 
 <svelte:head>
-	<title>New procedure</title>
+	<title>Новая процедура</title>
 </svelte:head>
 
 <div class="flex flex-col gap-4">
 	<Button href="/doc" variant="ghost" size="sm" class="self-start">
 		<ArrowLeftIcon data-icon="inline-start" />
-		Back to my procedures
+		К моим процедурам
 	</Button>
 
 	{#if form?.message}
 		<Alert.Root variant="destructive">
 			<ShieldAlertIcon />
-			<Alert.Title>Could not create procedure</Alert.Title>
+			<Alert.Title>Не удалось создать процедуру</Alert.Title>
 			<Alert.Description>{form.message}</Alert.Description>
 		</Alert.Root>
 	{/if}
 
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Patient</Card.Title>
+			<Card.Title>Пациент</Card.Title>
 			<Card.Description>
-				Enter the OMS policy number. The patient name is checked against the database.
+				Введите номер полиса ОМС. ФИО пациента проверяется в базе данных.
 			</Card.Description>
 		</Card.Header>
 		<Card.Content>
 			<form method="GET" action="/doc/new">
 				<Field.FieldGroup class="gap-3 sm:flex-row items-center">
 					<Field.Field class="flex-1" data-invalid={Boolean(omsError)}>
-						<Field.FieldLabel for="oms-check">OMS policy number</Field.FieldLabel>
-						<ButtonGroup.Root class="w-full" aria-label="Patient lookup">
+						<Field.FieldLabel for="oms-check">Номер полиса ОМС</Field.FieldLabel>
+						<ButtonGroup.Root class="w-full" aria-label="Поиск пациента">
 							<Input
 								id="oms-check"
 								name="oms"
@@ -154,7 +154,7 @@
 								aria-invalid={Boolean(omsError)}
 								placeholder="XXXXXXXXXX"
 							/>
-							<Button type="submit" variant="outline">Check patient</Button>
+							<Button type="submit" variant="outline">Проверить пациента</Button>
 						</ButtonGroup.Root>
 						{#if omsError}
 							<Field.FieldDescription>{omsError}</Field.FieldDescription>
@@ -175,47 +175,47 @@
 
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>Procedure details</Card.Title>
+				<Card.Title>Детали процедуры</Card.Title>
 				<Card.Description>
-					The form was opened at {data.openedAtLocal} UTC. You can change the time below.
+					Форма была открыта в {data.openedAtLocal} UTC. Ниже можно изменить время.
 				</Card.Description>
 			</Card.Header>
 			<Card.Content>
 				<Field.FieldGroup class="gap-4">
 					<Field.Field>
-						<Field.FieldLabel for="proc_name">Procedure name</Field.FieldLabel>
+						<Field.FieldLabel for="proc_name">Название процедуры</Field.FieldLabel>
 						<Input
 							id="proc_name"
 							name="proc_name"
 							bind:value={procName}
 							maxlength="200"
 							required
-							placeholder="e.g. Consultation"
+							placeholder="например, Консультация"
 						/>
 					</Field.Field>
 					<Field.Field>
-						<Field.FieldLabel for="proc_time">Procedure time (UTC)</Field.FieldLabel>
+						<Field.FieldLabel for="proc_time">Время процедуры (UTC)</Field.FieldLabel>
 						<Input id="proc_time" name="proc_time" type="datetime-local" bind:value={procTime} />
 						<Field.FieldDescription>
-							Leave as-is to keep the time when this form was opened.
+							Оставьте без изменений, чтобы сохранить время открытия формы.
 						</Field.FieldDescription>
 					</Field.Field>
 					<Field.Field>
-						<Field.FieldLabel for="remarks">Remarks</Field.FieldLabel>
+						<Field.FieldLabel for="remarks">Замечания</Field.FieldLabel>
 						<Textarea
 							id="remarks"
 							name="remarks"
 							bind:value={remarks}
-							placeholder="Personal notes about the procedure"
+							placeholder="Личные заметки о процедуре"
 						/>
 					</Field.Field>
 					<Field.Field>
-						<Field.FieldLabel for="recommendations">Recommendations</Field.FieldLabel>
+						<Field.FieldLabel for="recommendations">Рекомендации</Field.FieldLabel>
 						<Textarea
 							id="recommendations"
 							name="recommendations"
 							bind:value={recommendations}
-							placeholder="Recommendations for the patient"
+							placeholder="Рекомендации для пациента"
 						/>
 					</Field.Field>
 				</Field.FieldGroup>
@@ -224,19 +224,19 @@
 
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>Medications</Card.Title>
+				<Card.Title>Лекарства</Card.Title>
 				<Card.Description>
-					Choose a medication and dosage. Adding the same medication again adds to its dosage.
+					Выберите препарат и дозировку. Повторное добавление того же препарата увеличивает дозировку.
 				</Card.Description>
 				<Card.Action>
-					<Badge variant="secondary">{added.length} added</Badge>
+					<Badge variant="secondary">Добавлено: {added.length}</Badge>
 				</Card.Action>
 			</Card.Header>
 			<Card.Content>
 				<div class="flex flex-col gap-4">
 					<Field.FieldGroup class="gap-3 sm:flex-row sm:items-end">
 						<Field.Field class="flex-1" data-invalid={Boolean(medError)}>
-							<Field.FieldLabel for="medication-picker">Medication</Field.FieldLabel>
+							<Field.FieldLabel for="medication-picker">Препарат</Field.FieldLabel>
 							<Popover.Root bind:open={medOpen}>
 								<Popover.Trigger>
 									{#snippet child({ props })}
@@ -249,16 +249,16 @@
 											aria-expanded={medOpen}
 											aria-invalid={Boolean(medError)}
 										>
-											{selectedMed ? selectedMed.name : 'Select a medication'}
+											{selectedMed ? selectedMed.name : 'Выберите препарат'}
 											<ChevronDownIcon />
 										</Button>
 									{/snippet}
 								</Popover.Trigger>
 								<Popover.Content class="w-[24rem] p-0">
 									<Command.Root disableInitialScroll>
-										<Command.Input placeholder="Search medications..." />
+										<Command.Input placeholder="Поиск препаратов..." />
 										<Command.List>
-											<Command.Empty>No medications found.</Command.Empty>
+											<Command.Empty>Препараты не найдены.</Command.Empty>
 											<Command.Group>
 												{#each data.medications as medication (medication.id)}
 													<Command.Item
@@ -277,19 +277,19 @@
 							</Popover.Root>
 						</Field.Field>
 						<Field.Field>
-							<Field.FieldLabel for="dosage">Dosage</Field.FieldLabel>
-							<ButtonGroup.Root class="w-full" aria-label="Medication dosage">
+							<Field.FieldLabel for="dosage">Дозировка</Field.FieldLabel>
+							<ButtonGroup.Root class="w-full" aria-label="Дозировка препарата">
 								<Input
 									id="dosage"
 									type="number"
 									min="0"
 									step="any"
 									bind:value={selectedDosage}
-									placeholder="e.g. 0.5"
+									placeholder="например, 0.5"
 								/>
 								<Button type="button" variant="outline" onclick={addMedication}>
 									<PlusIcon data-icon="inline-start" />
-									Add
+									Добавить
 								</Button>
 							</ButtonGroup.Root>
 						</Field.Field>
@@ -305,16 +305,16 @@
 
 					{#if added.length === 0}
 						<p class="text-sm text-muted-foreground">
-							No medications added. The procedure can still be saved without applications.
+							Препараты не добавлены. Процедуру можно сохранить и без назначений.
 						</p>
 					{:else}
 						<Table.Root>
 							<Table.Header>
 								<Table.Row>
-									<Table.Head>Medicine</Table.Head>
-									<Table.Head>Method</Table.Head>
-									<Table.Head class="text-right">Dosage</Table.Head>
-									<Table.Head class="text-right">Remove</Table.Head>
+									<Table.Head>Препарат</Table.Head>
+									<Table.Head>Способ применения</Table.Head>
+									<Table.Head class="text-right">Дозировка</Table.Head>
+									<Table.Head class="text-right">Убрать</Table.Head>
 								</Table.Row>
 							</Table.Header>
 							<Table.Body>
@@ -328,7 +328,7 @@
 												type="button"
 												variant="ghost"
 												size="icon"
-												aria-label={`Remove ${medication.name}`}
+												aria-label={`Убрать ${medication.name}`}
 												onclick={() => removeMedication(medication.id)}
 											>
 												<Trash2Icon />
@@ -343,10 +343,10 @@
 			</Card.Content>
 		</Card.Root>
 		<Card.Root>
-    		<Card.Footer class="justify-between">
-        		<Button href="/doc" variant="ghost" type="button">Cancel</Button>
-        		<Button type="submit">Create procedure</Button>
-    		</Card.Footer>
+			<Card.Footer class="justify-between">
+				<Button href="/doc" variant="ghost" type="button">Отмена</Button>
+				<Button type="submit">Создать процедуру</Button>
+			</Card.Footer>
 		</Card.Root>
 	</form>
 	<div class="h-4" aria-hidden="true"></div>

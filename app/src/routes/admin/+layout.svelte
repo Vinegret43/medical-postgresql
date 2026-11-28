@@ -8,13 +8,13 @@
 	let { data, children } = $props();
 
 	const links = [
-		{ href: '/admin/patients', label: 'Patients' },
-		{ href: '/admin/doctors', label: 'Doctors' },
-		{ href: '/admin/meds', label: 'Medications' },
-		{ href: '/admin/procedures', label: 'Procedures' },
+		{ href: '/admin/patients', label: 'Пациенты' },
+		{ href: '/admin/doctors', label: 'Врачи' },
+		{ href: '/admin/meds', label: 'Лекарства' },
+		{ href: '/admin/procedures', label: 'Процедуры' },
 	];
 
-	let adminName = $derived(data.admin?.fullname ?? 'Admin');
+	let adminName = $derived(data.admin?.fullname ?? 'Администратор');
 	let initials = $derived(
 		adminName
 			.split(/\s+/)
@@ -37,15 +37,15 @@
 					<HeartPulseIcon class="size-5 text-primary" />
 					<Button href="/admin" variant="ghost" size="sm">
 						<HouseIcon data-icon="inline-start" />
-						Home
+						Главная
 					</Button>
 					<span class="text-muted-foreground">/</span>
-					<span class="text-sm font-medium">Administration</span>
+					<span class="text-sm font-medium">Администрирование</span>
 				</div>
 
 				<nav class="flex flex-wrap items-center gap-1">
 					<Button href="/admin" variant={pathname === '/admin' ? 'secondary' : 'ghost'} size="sm">
-						Dashboard
+						Обзор
 					</Button>
 					{#each links as link (link.href)}
 						<Button
@@ -67,7 +67,7 @@
 					<Avatar.Root class="size-6">
 						<Avatar.Fallback>{initials}</Avatar.Fallback>
 					</Avatar.Root>
-					Profile
+					Профиль
 				</Button>
 			</div>
 		</header>

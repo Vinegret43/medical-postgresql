@@ -10,15 +10,15 @@
 </script>
 
 <svelte:head>
-	<title>Medications</title>
+	<title>Лекарства</title>
 </svelte:head>
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>Medication catalog</Card.Title>
-		<Card.Description>Medicines that can be applied to a procedure.</Card.Description>
+		<Card.Title>Каталог лекарств</Card.Title>
+		<Card.Description>Препараты, которые можно назначить в процедуре.</Card.Description>
 		<Card.Action>
-			<Badge variant="secondary">{medications.length} total</Badge>
+			<Badge variant="secondary">Всего: {medications.length}</Badge>
 		</Card.Action>
 	</Card.Header>
 	<Card.Content>
@@ -26,18 +26,18 @@
 			<Empty.Root>
 				<Empty.Header>
 					<Empty.Media variant="icon"><PillIcon /></Empty.Media>
-					<Empty.Title>No medications found</Empty.Title>
-					<Empty.Description>The medication catalog is empty.</Empty.Description>
+					<Empty.Title>Лекарства не найдены</Empty.Title>
+					<Empty.Description>Каталог лекарств пуст.</Empty.Description>
 				</Empty.Header>
 			</Empty.Root>
 		{:else}
 			<Table.Root>
-				<Table.Caption>Recorded medications.</Table.Caption>
+				<Table.Caption>Записанные препараты.</Table.Caption>
 				<Table.Header>
 					<Table.Row>
-						<Table.Head>Name</Table.Head>
-						<Table.Head>Method</Table.Head>
-						<Table.Head>Mark ID</Table.Head>
+						<Table.Head>Название</Table.Head>
+						<Table.Head>Способ применения</Table.Head>
+						<Table.Head>Идентификатор знака</Table.Head>
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>

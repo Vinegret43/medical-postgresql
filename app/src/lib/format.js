@@ -1,4 +1,4 @@
-const dateTimeFormatter = new Intl.DateTimeFormat('en-GB', {
+const dateTimeFormatter = new Intl.DateTimeFormat('ru-RU', {
 	day: '2-digit',
 	month: 'short',
 	year: 'numeric',
@@ -8,7 +8,7 @@ const dateTimeFormatter = new Intl.DateTimeFormat('en-GB', {
 	timeZone: 'UTC'
 });
 
-const dateFormatter = new Intl.DateTimeFormat('en-GB', {
+const dateFormatter = new Intl.DateTimeFormat('ru-RU', {
 	day: '2-digit',
 	month: 'long',
 	year: 'numeric',
